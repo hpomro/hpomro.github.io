@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<!-- saved from url=(0037)https://xs827227.xsrv.jp/2220/js.html -->
+<html lang="ja">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./index_files/new.min.css">
+  <link rel="icon" href="./favicon.ico" type="image/x-icon">
+  <title>正規表現グランプリ</title>
+</head>
+
+<body>
+  <div id="question">
+    <h2>Regex Grand Prix</h2>
+
+    <div>
+      <p><button onclick="how_to_use()"><span id="how_to_use_triangle"
+            style="transform: rotate(-90deg); display: inline-block;">&bigtriangledown;</span> &#xE2C0; 使い方</button></p>
+      <p id="how_to_use" style="display: none;">To Match に書かれた文字列すべてにマッチし、Not To Match に書かれた文字列のいずれにもマッチしない正規表現を答えてください。
+        <br>入力した正規表現の長さが短いほど得点が高くなります。
+        <br>誤答によるペナルティはありません。
+      </p>
+    </div>
+
+    <!-- 設定 -->
+    <div>
+      <p><button onclick="config()">&#x1F527; 設定</button></p>
+      <div id="config" style="display: none;">
+        <label for="question_len">単語数</label>
+        <input type="text" name="question_len" id="question_len" value="12">
+      </div>
+    </div>
+
+    <p><button onclick="init(), flush_anime()"><span style="transform: rotate(90deg); display: inline-block;"
+          id="flush_anime">&#x21BB;</span>更新</button></p>
+
+    <!-- 問題 -->
+    <h3>To Match</h3>
+    <ul id="to_match"></ul>
+
+    <h3>Not To Match</h3>
+    <ul id="not_to_match"></ul>
+  </div>
+
+  <!-- 入力 -->
+  <div>
+    <label for="input">解答</label>
+    <input type="text" name="input" id="input" value="">
+    <input type="button" onclick="order()" value="確定">
+  </div>
+
+  <!-- 結果 -->
+  <div>
+    <p id="result" style="font-weight: bold"></p>
+    <p id="length"></p>
+    <p id="score"></p>
+  </div>
+
+  <script>
+    let question;
+    let question_len = 12;
+    let to_match_len = 4;
+
+    const str_len_min = 6;
+    const str_len_max = 8;
+    const DEFAULT_EDIT_COUNT = 3;
+
+    let how_to_use_display = false;
+    let config_display = false;
+
+    init();
+
+    function init() {
+      question_len = document.getElementById("question_len").value;
+      to_match_len = Math.floor(question_len * 1 / 3);
+      flush();
+    }
+
+    function flush() {
+      main();
+      document.getElementById("result").innerHTML = "";
+      document.getElementById("length").innerHTML = "";
+      document.getElementById("score").innerHTML = "";
+      document.getElementById("input").value = "";
+    }
+
+    function score_func(x) {
+      return Math.exp(-x * x / 391.5) * 100;
+    }
+
+    function random_small_char_str() {
+      return String.fromCharCode(randint(97, 97 + 26 - 1));
+    }
+
+    //   max is included
+    function randint(min, max_included) {
+      return Math.floor(Math.random() * (max_included - min + 1)) + min;
+    }
+
+    function random_string(length) {
+      let res = "";
+      for (let index = 0; index < length; index++) {
+        res += random_small_char_str();
+      }
+      return res;
+    }
+
+    function random_string_range(min_length, max_length) {
+      return random_string(randint(min_length, max_length));
+    }
+
+    function random_edit(str, count) {
+      for (let index = 0; index < count; index++) {
+        const type = randint(0, 2);
+        const place = randint(0, str.length - 1);
+        switch (type) {
+          case 0:
+            str = str.slice(0, place) + str.slice(place + 1);
+            break;
+          case 1:
+            str =
+              str.slice(0, place) +
+              random_small_char_str() +
+              str.slice(place);
+            break;
+          case 2:
+            str =
+              str.slice(0, place) +
+              random_small_char_str() +
+              str.slice(place + 1);
+            break;
+          default:
+            break;
+        }
+      }
+      return str;
+    }
+
+    function generate_question(length, min, max) {
+      const arr = [];
+      const seed_str = random_string_range(min, max);
+      const used = new Set();
+      arr.push(seed_str);
+      for (let index = 0; index < length; index++) {
+        while (true) {
+          const tmp_str = random_edit(seed_str, DEFAULT_EDIT_COUNT);
+          if (used.has(tmp_str)) {
+            continue;
+          } else {
+            arr.push(tmp_str);
+            used.add(tmp_str);
+            break;
+          }
+        }
+      }
+      return arr;
+    }
+
+    function judge(regex) {
+      let res = true;
+      const re = new RegExp(regex, "d");
+      for (let index = 0; index < to_match_len; index++) {
+        const element = question[index];
+        res &= re.test(element);
+        // console.log(re, element, re.test(element));
+      }
+      for (let index = to_match_len; index < question.length; index++) {
+        const element = question[index];
+        res &= !re.test(element);
+        // console.log(re.test(element));
+      }
+      return res ? true : false;
+    }
+
+    function get_input() {
+      const input = document.getElementById("input").value;
+      console.log("input :", input);
+      return input;
+    }
+
+    function show_result(input) {
+      const is_correct = judge(input);
+      console.log("correct? :", is_correct ? "correct" : "incorrect");
+      document.getElementById("result").innerHTML = is_correct
+        ? '<span style="color : red">正解</span>'
+        : '<span style="color : bulue">不正解</span>';
+      const input_length = input.length;
+      console.log("input length :", input_length);
+      document.getElementById("length").innerHTML = "長さ : " + input_length;
+      const score = is_correct ? score_func(input_length) : 0;
+      console.log("score :", score);
+      document.getElementById("score").innerHTML = "スコア : " + score;
+    }
+
+    function show_question() {
+      let tmp = "";
+      for (let index = 0; index < to_match_len; index++) {
+        const element = question[index];
+        tmp += "<li>" + element + "</li>";
+      }
+      document.getElementById("to_match").innerHTML = tmp;
+      tmp = "";
+      for (let index = to_match_len; index < question.length; index++) {
+        const element = question[index];
+        tmp += "<li>" + element + "</li>";
+      }
+      document.getElementById("not_to_match").innerHTML = tmp;
+    }
+
+    function main() {
+      question = generate_question(question_len, str_len_min, str_len_max);
+      // console.log(question);
+      show_question();
+    }
+
+    function order() {
+      show_result(get_input());
+      // 結果を送信する予定
+    }
+
+    function how_to_use() {
+      how_to_use_display = !how_to_use_display;
+      document.getElementById("how_to_use").style.display = how_to_use_display ? "block" : "none";
+      document.getElementById("how_to_use_triangle").style.transform = how_to_use_display ? "none" : "rotate(-90deg)"
+    }
+
+    function config() {
+      config_display = !config_display;
+      document.getElementById("config").style.display = config_display ? "block" : "none";
+    }
+
+    function flush_anime() {
+
+      // for (let i = 1; i <= 4; i++) {
+      //   document.getElementById("flush_anime").style.transform = "rotate(" + 90 * (i + 1) + "deg)";
+      // }
+
+    }
+  </script>
+
+
+</body>
+
+</html>
+<!-- メモ グッドボタン -->
