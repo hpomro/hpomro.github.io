@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css/new.min.css">
+    <script src="chart_random_79G2_4.js"></script>
+    <meta name="robots" content="noindex">
+    <title>青チャートランダム(数Ⅲ)</title>
+    <style>
+        .diff_1 {
+            color: darkkhaki;
+        }
+
+        .diff_2 {
+            color: orange;
+        }
+
+        .diff_3 {
+            color: greenyellow;
+        }
+
+        .diff_4 {
+            color: rgb(60, 60, 220);
+        }
+
+        .diff_5 {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>青チャートランダム[数学Ⅲ] v1</h1>
+    <p>for 79th2年第4回考査</p>
+    <p>下の「next」ボタンを押してください</p>
+    <details>
+        <summary>設定/初期化</summary>
+        <p>
+            <label for="solved">解いた問題(&cir;&cir;/E&cir;&cir;をカンマ区切りで) : </label>
+            <input type="text" name="solved" id="solved">
+        </p>
+        <p>
+            <label for="diff_from">難易度下限: </label>
+            <input type="number" name="diff_from" id="diff_from" value="1" min="1" max="5">
+        </p>
+        <p>
+            <label for="diff_to">難易度上限: </label>
+            <input type="number" name="diff_to" id="diff_to" value="5" min="1" max="5">
+        </p>
+        <p>
+            <button onclick="init('solved','diff_from','diff_to','changed_notice')">change</button>
+            <span id="changed_notice"></span>
+        </p>
+    </details>
+    <br>
+    <p>
+        <button onclick="show_next('main_place')">next</button>
+    </p>
+    <div>
+        <h2>次の問題&downarrow;</h2>
+        <p id="main_place" style="font-weight: bold; font-size: larger;">&nbsp;</p>
+    </div>
+    <hr>
+    <div>
+        <p>※途中から再開したい場合は「解いた問題」を開いてコピーしたテキストを各自保存しておいてください</p>
+        <details>
+            <summary>解いた(飛ばした)問題</summary>
+            <p id="solved_printer" style="border: solid 1px;"></p>
+            <button onclick="copy_to_clip(document.getElementById('solved_printer').innerText)">コピー</button>
+        </details>
+    </div>
+</body>
+
+</html>
