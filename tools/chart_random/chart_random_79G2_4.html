@@ -32,26 +32,41 @@
 </head>
 
 <body>
-    <h1>青チャートランダム[数学Ⅲ] v1</h1>
+    <h1>青チャートランダム[数学Ⅲ] v1.1</h1>
     <p>for 79th2年第4回考査</p>
     <p>下の「next」ボタンを押してください</p>
     <details>
         <summary>設定/初期化</summary>
         <p>
-            <label for="solved">解いた問題(&cir;&cir;/E&cir;&cir;をカンマ区切りで) : </label>
+            <label for="solved">解いた問題(&cir;&cir;/E&cir;&cir;をカンマ区切り) : </label>
             <input type="text" name="solved" id="solved">
         </p>
         <p>
-            <label for="diff_from">難易度下限: </label>
+            <label for="diff_from">難易度下限 : </label>
             <input type="number" name="diff_from" id="diff_from" value="1" min="1" max="5">
         </p>
         <p>
-            <label for="diff_to">難易度上限: </label>
+            <label for="diff_to">難易度上限 : </label>
             <input type="number" name="diff_to" id="diff_to" value="5" min="1" max="5">
         </p>
         <p>
-            <button onclick="init('solved','diff_from','diff_to','changed_notice')">change</button>
-            <span id="changed_notice"></span>
+            <label for="chap">単元指定 : </label>
+            <select name="chap" id="chap" size="9" multiple>
+                <option value="分数関数・無理関数" selected id="分数関数・無理関数">分数関数・無理関数</option>
+                <option value="合成関数・逆関数" selected id="合成関数・逆関数">合成関数・逆関数</option>
+                <option value="数列の極限" selected id="数列の極限">数列の極限</option>
+                <option value="無限級数" selected id="無限級数">無限級数</option>
+                <option value="関数の極限" selected id="関数の極限">関数の極限</option>
+                <option value="関数の連続性" selected id="関数の連続性">関数の連続性</option>
+                <option value="微分係数と導関数,導関数の計算" selected id="微分係数と導関数,導関数の計算">微分係数と導関数,導関数の計算</option>
+                <option value="関連発展問題(導関数)" selected id="関連発展問題(導関数)">関連発展問題(導関数)</option>
+                <option value="微分係数と導関数" selected id="微分係数と導関数">微分係数と導関数</option>
+            </select>
+            ※PCの方はCtrlを押しながら複数選択
+        </p>
+        <p>
+            <button onclick="init('solved','diff_from','diff_to', 'chap')">change</button>
+            <span id="changed_notice" style="visibility: hidden;">上記の設定で初期化しました</span>
         </p>
     </details>
     <br>
