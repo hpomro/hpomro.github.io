@@ -1,0 +1,57 @@
+.glow-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-family: sans-serif;
+}
+
+/* デフォルトのチェックボックスを隠す */
+.glow-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 見た目用の四角 */
+.glow-checkbox .checkmark {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid #aaa;
+  box-sizing: border-box;
+  background: #fff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+  position: relative;
+}
+
+/* チェックマーク（✓） */
+.glow-checkbox .checkmark::after {
+  content: "";
+  position: absolute;
+  inset: 3px 5px 5px 6px;
+  border-right: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+/* チェックされたときのスタイル */
+.glow-checkbox input[type="checkbox"]:checked+.checkmark {
+  border-color: #00c853;
+  background: #00e676;
+  box-shadow: 0 0 8px 2px rgba(0, 230, 118, 0.8);
+}
+
+/* チェックマークを緑で表示 */
+.glow-checkbox input[type="checkbox"]:checked+.checkmark::after {
+  border-right-color: #fff;
+  border-bottom-color: #fff;
+  opacity: 1;
+}

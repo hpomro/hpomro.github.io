@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <style>
+        body {
+            position: absolute;
+
+            @media screen and (min-width:600px) {
+                width: 80%;
+                left: 9%;
+            }
+        }
+
+        .show-after {
+            visibility: hidden;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../common2026/js/main.js"></script>
+    <link rel="stylesheet" href="../../common2026/css/header.css">
+    <link rel="stylesheet" href="../../common2026/css/main.css">
+    <link rel="stylesheet" href="./check_box.css">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <meta name="robots" content="noindex">
+    <title>SMC026 - 問題</title>
+</head>
+
+<body>
+    <header>
+        <div id="cover"></div>
+        <div id="menu">
+            <nav>
+                <ul>
+                    <li><a href="../top.html">トップ<br>Top</a></li>
+                    <li><a href="./questions_before_lrzwyguqlfrbyisk.html" class="menu-current-place">問題<br>Questions</a></li>
+                    <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSfCqJRNOffbQ31FQCO3smP0LazIT-wdiOtbiaOooNPc9-BIUQ/viewform?usp=publish-editor"
+                            target="_blank">質問<br>Clarifications</a></li>
+                    <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSfICuV990Tgz89B7I5S-IOXPAu31Azg6Yie4XSe3C8PQuI62g/viewform?usp=publish-editor"
+                            target="_blank">
+                            提出<br>Submission</a></li>
+                    <li class="show-after"><a href="../403.html">ヒント<br>Hints</a></li>
+                    <li class="show-after"><a href="../403.html">解説<br>Explanation</a></li>
+                </ul>
+            </nav>
+            <div id="contest-name">
+                <p>SMC026</p>
+            </div>
+        </div>
+        <button id="change-menu-display-button" onclick="change_menu_display()"
+            class="menu-button">SMC026<br>MENU</button>
+        <button id="show-menu-display-button" onclick="show_menu_display()">メニューを強制表示</button>
+    </header>
+
+    <main>
+        <div>
+            <h1 class="center">Suken Math Contest 026</h1>
+        </div>
+        <div>
+            <ul>
+                <li>「答えのみ」と書かれていない問題は記述をせよ。</li>
+                <li>丁寧な字で書くこと(特に0と6に注意)。</li>
+                <li>正常に表示されない場合は、質問フォームかLINEで主催者に連絡すること。</li>
+            </ul>
+        </div>
+        <div id="Q1">
+            <h2 class="question-title">Survey</h2>
+
+            <p>
+                「アル」は「マンタ部」に入っている。マンタ部の部員にアンケートをとって、288人から回答を得た。
+                アンケートでは以下の質問をした。
+            </p>
+            <div style="border: dashed 1px">
+                <span>
+                    <p style="padding-left: 1em;">
+                        [アンケート]<br>次のうちで、好きなものすべてにチェックを入れてください。
+                    </p>
+                    <p>
+                        <li style="list-style-type: none; padding-left: 1em;">
+                            <label class="glow-checkbox">
+                                <input type="checkbox">
+                                <span class="checkmark"></span>
+                                数学
+                            </label>
+                        </li>
+                        <li style="list-style-type: none; padding-left: 1em;">
+                            <label class="glow-checkbox">
+                                <input type="checkbox">
+                                <span class="checkmark"></span>
+                                競技プログラミング
+                            </label>
+                        </li>
+                        <li style="list-style-type: none; padding-left: 1em;">
+                            <label class="glow-checkbox">
+                                <input type="checkbox">
+                                <span class="checkmark"></span>
+                                たこ焼き
+                            </label>
+                        </li>
+                        <!-- <input type="checkbox" class="glow-checkbox">数学<br>
+                    <input type="checkbox">競技プログラミング<br>
+                    <input type="checkbox">たこ焼き -->
+                    </p>
+                </span>
+            </div>
+            <p>結果を集計した結果次のようになった。ただし、Aが好きな人の中にはA以外も好きな人も含まれることに注意せよ。
+            </p>
+            <table><span>
+                    <tr>
+                        <th>属性</th>
+                        <th>人数 (人)</th>
+                    </tr>
+                    <tr>
+                        <td>何にもチェックを入れなかった</td>
+                        <td class="table-right">32</td>
+                    </tr>
+                    <tr>
+                        <td>数学が好き</td>
+                        <td class="table-right">185</td>
+                    </tr>
+                    <tr>
+                        <td>競技プログラミングが好き</td>
+                        <td class="table-right">149</td>
+                    </tr>
+                    <tr>
+                        <td>たこ焼きが好き</td>
+                        <td class="table-right">172</td>
+                    </tr>
+                    <tr>
+                        <td>数学と競技プログラミングが好き</td>
+                        <td class="table-right">113</td>
+                    </tr>
+                    <tr>
+                        <td>数学とたこ焼きが好き</td>
+                        <td class="table-right">121</td>
+                    </tr>
+                    <tr>
+                        <td>競技プログラミングとたこ焼きが好き</td>
+                        <td class="table-right">106</td>
+                    </tr>
+                </span></table>
+            <p>ここで、数学、競技プログラミング、たこ焼きがすべて好きな人の数を求めよ。</p>
+            <p>[答えのみ]</p>
+        </div>
+        <hr class="no-print">
+        <div id="Q2">
+            <h2 class="question-title new-page">LCM of Adjacent Numbers</h2>
+            <p>どんな正の整数 \(n\) に対しても、 \(n\) と \(n+1\) の最小公倍数が \(n(n+1)\) であることを証明せよ。</p>
+        </div>
+        <hr class="no-print">
+        <div id="Q3">
+            <h2 class="question-title new-page">2026th Number</h2>
+            <p>
+                \(1,2,3,4,5,6,7\) を並べ替えて順につなげて、整数とみなしたときに、小さいほうから2026番目のものを求めよ。
+                例えば、小さいほうから1番目のものは \(1234567\)、2番目のものは \(1234576\) である。
+            </p>
+            <p>[答えのみ]</p>
+        </div>
+        <hr class="no-print">
+        <div id="Q4">
+            <h2 class="question-title new-page">Not Constant</h2>
+            <p>横一列に並んだ10個の白いマスのうち0個以上を黒く塗るとき、黒いマスが連続しない塗り方は何通りあるか。</p>
+            <p>[答えのみ]</p>
+        </div>
+        <hr class="no-print">
+        <div id="Q5">
+            <h2 class="question-title new-page">Airport</h2>
+            <p>
+                \(n\) 個の空港がある( \(n\) は<strong>3以上</strong>の整数)。2つの空港を結ぶ航路を 1 本つくるにはコストが 1 かかる。
+                すべての空港が航路をたどって互いに行き来できるようにしたい。
+                <br>
+                以下の問いに答えよ。ただし、必要ならば答えに \(n\) を用いること。
+            <ol class="bracket-roman">
+                <li>必要な最小コストを求めよ。[答えのみ]</li>
+                <li>(i) の条件のもとでは、どの 2 空港間の道順が 1 通りに定まることを証明せよ。</li>
+                <li>(ii) の条件のもとで、2つの空港を行き来する際に通る航路の本数の最大値としてありうる最小値を求め、その値が最小値であることを証明せよ。<br>
+                    <span style="padding: 2em;">(例) \(n=5\) のとき、つなぎ方によって最も遠い空港どうしの航路本数は 3 になる場合もあれば、2
+                        にできる場合もある。この「最も遠い空港どうしの航路本数」をできるだけ小さくしたい。
+                    </span>
+                </li>
+            </ol>
+            </p>
+        </div>
+        <hr class="no-print">
+        <div>
+            <h2 class="question-title new-page">Fill the Board</h2>
+            <p>
+                縦8マス、横8マスの盤面がある。上から \(i\) 行目( \(i=1,2,...,8\) )、左から \(j\) 列目( \(j=1,2,...,8\) )
+                にあるマスを座標 \((i,j)\) で表すこととする。<br>
+                異なる2マス \(\mathrm{A}(a_{i},a_{j}), \mathrm{B}(b_{i},b_{j})\) を選ぶ。
+                マスA,B以外の62マスを縦1マス、横2マスのタイルと、縦2マス、横1マスのタイルで、重なったりはみ出したりすることなく敷き詰めることができるとき、敷き詰め可能と呼ぶこととする。
+                また、左上のマスを黒く塗り、他のマスもこれに沿って白黒の市松模様になるように塗っておく。
+            </p>
+            <p>次のことがらを証明せよ。</p>
+            <p>&gt;&gt; 敷き詰め可能 &DoubleLeftRightArrow; マスA,Bの色が異なる</p>
+
+            <img src="./q6_by_copilot.png" alt="盤面の画像" style="width: min(512px, 80%);">
+        </div>
+    </main>
+    <footer>
+        <hr class="footer-hr">
+        <p class="footer-content">Suken Math Contest 026 &nbsp; &copy; 2026 Kuniko Suken</p>
+    </footer>
+</body>
+
+</html>
