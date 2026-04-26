@@ -1,0 +1,101 @@
+:root {
+    --important-color: rgb(176, 82, 71);
+}
+
+body {
+    counter-reset: cnt-h2-question-title;
+}
+
+table {
+    border: solid 1px;
+}
+
+table th {
+    border: solid 1px;
+    padding: 10px;
+}
+
+table td {
+    border: solid 1px;
+    padding: 10px;
+}
+
+.center {
+    text-align: center;
+}
+
+.right {
+    text-align: right;
+}
+
+ol.list-parentheses {
+    padding: 0 0 0 2em;
+}
+
+ol.list-parentheses li {
+    list-style-type: none;
+    list-style-position: inside;
+    counter-increment: cnt;
+    margin: 0.5em;
+}
+
+ol.list-parentheses li::before {
+    display: marker;
+    content: "(" counter(cnt) ") ";
+}
+
+.answer {
+    border: solid 2px red;
+}
+
+@media print {
+    .no-print {
+        display: none;
+    }
+
+}
+
+.new-page {
+    break-before: page;
+}
+
+.important {
+    color: var(--important-color);
+}
+
+.table-right {
+    padding-right: 0.5em;
+    text-align: right;
+}
+
+ol.bracket-roman {
+    counter-reset: cnt-bracket-roman;
+    padding: 0 0 0 2em;
+}
+
+ol.bracket-roman li {
+    list-style-type: none;
+    list-style-position: inside;
+    counter-increment: cnt-bracket-roman;
+    margin: 0.5em;
+}
+
+ol.bracket-roman li::before {
+    content: "(" counter(cnt-bracket-roman, lower-roman) ")" " ";
+}
+
+body h2.question-title {
+    counter-increment: cnt-h2-question-title;
+}
+
+body h2.question-title::before {
+    display: marker;
+    content: "問" counter(cnt-h2-question-title) "." " ";
+    /* margin: 0.5em; */
+}
+
+#user-hpomro {
+    /* color: rgb(51, 26, 131); */
+    color: rgb(187, 87, 237);
+    font-weight: bold;
+}
