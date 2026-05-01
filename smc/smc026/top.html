@@ -10,7 +10,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../common2026/js/main.js"></script>
     <link rel="stylesheet" href="../common2026/css/header.css">
     <link rel="stylesheet" href="../common2026/css/main.css">
@@ -26,12 +25,12 @@
             <nav>
                 <ul>
                     <li><a href="./top.html" class="menu-current-place">トップ<br>Top</a></li>
-                    <li><a href="./questions/questions.html">問題<br>Questions</a></li>
+                    <li><a id="top-to-questions-link" href="./403.html">問題<br>Questions</a></li>
                     <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSfCqJRNOffbQ31FQCO3smP0LazIT-wdiOtbiaOooNPc9-BIUQ/viewform?usp=publish-editor"
                             target="_blank">質問<br>Clarifications</a></li>
                     <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSfICuV990Tgz89B7I5S-IOXPAu31Azg6Yie4XSe3C8PQuI62g/viewform?usp=publish-editor"
                             target="_blank">
-                            提出<br>Submission</a></li>
+                            提出<br>Submit</a></li>
                     <li class="show-after"><a href="403.html">ヒント<br>Hints</a></li>
                     <li class="show-after"><a href="403.html">解説<br>Explanation</a></li>
                 </ul>
@@ -93,7 +92,7 @@
             <li>答案の提出は試験終了の10分後までにお願いします。</li>
             <li>使用するフォーム: Googleフォーム ※Googleアカウントが必要です</li>
             <li>フォームのURLはコンテスト開始時に公開します。</li>
-            <li>大問ごとに分けて提出してください。同じ大問に対して複数の提出があった場合、最後に提出されたもののみを採点します。</li>
+            <li>大問 <span style="color: red;">または小問</span> ごとに分けて提出してください。同じ<s>大問</s> <span style="color: red;">問題</span> に対して複数の提出があった場合、最後に提出されたもののみを採点します。</li>
             <li>画像のファイルサイズは気にしなくてよいです。</li>
             <li>採点結果は後日発表します。</li>
         </ul>
@@ -148,6 +147,34 @@
             https://docs.google.com/forms/d/e/1FAIpQLScYqcRT-sV0Td0WKNkksMuNtWA-KtMc9B4ZEtizvdePb9m1hA/viewform?usp=publish-editor"
                 target="_blank">事前受験開始フォーム</a></p>
 
+        <script>
+            const START_TIME = new Date(2026, 5, 1, 19, 30, 0);
+            // const START_TIME = new Date(2026, 5, 1, 0, new Date().getMinutes(), new Date().getSeconds() + 3);
+            let started = false;
+            function start_judge() {
+                const now = new Date();
+                if (now.getTime() >= START_TIME.getTime()) {
+                    console.log("started");
+                    change_link("top-to-questions-link", "./questions/questions.html");
+                }
+            }
+            start_judge();
+            const start_judge_interval = setInterval(() => {
+                if (!started) {
+                    started = true;
+                    start_judge();
+                }
+            }, 5000);
+            let alerted = false;
+            const start_alert = setInterval(() => {
+                const now = new Date();
+                if (!alerted && now.getTime() >= START_TIME.getTime() && now.getTime() - START_TIME.getTime() <= 2000) {
+                    alerted = true;
+                    alert("コンテストが始まりました。\n問題ボタンを押して問題ページに進んでください。");
+                }
+            }, 1500);
+
+        </script>
     </main>
     <footer>
         <hr class="footer-hr">
