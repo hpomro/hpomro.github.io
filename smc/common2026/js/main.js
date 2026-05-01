@@ -26,3 +26,7 @@ function change_menu_display() {
 function show_menu_display() {
     menu.style.display = "block";
 }
+
+function change_link(id, new_link) {
+    document.getElementById(id).setAttribute("href", new_link);
+}

@@ -129,7 +129,7 @@ footer {
 @media (orientation: portrait) and (min-width: 600px) {
     body {
         position: absolute;
-        width: 100%;
+        width: 98%;
         left: 0;
     }
 
