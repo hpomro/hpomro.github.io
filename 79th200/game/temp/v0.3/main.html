@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HP用ゲーム &beta;版</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="setup-screen">
+        <h1>HP用ゲーム &beta;版</h1>
+        <div class="input-group">
+            <label>盤面サイズ: </label>
+            横 <input type="number" id="input-h" value="5" min="3" max="10">
+            縦 <input type="number" id="input-w" value="5" min="3" max="10">
+        </div>
+        <div class="input-group">
+            <label>プレイヤー1 (赤): </label>
+            <input type="text" id="p1-name" value="p1">
+        </div>
+        <div class="input-group">
+            <label>プレイヤー2 (青): </label>
+            <input type="text" id="p2-name" value="p2">
+        </div>
+        <button id="start-btn">ゲーム開始</button>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div id="info-panel">
+            <div id="turn-display"></div>
+            <div id="source-count"></div>
+            <div id="score-display"></div>
+        </div>
+
+        <div id="action-panel">
+            <button id="mode-source" class="mode-btn active">水源設置</button>
+            <button id="mode-wall" class="mode-btn">仕切り操作</button>
+            <button id="mode-rag" class="mode-btn">雑巾</button>
+        </div>
+
+        <div id="board-container">
+            <div id="board"></div>
+        </div>
+
+        <div id="message-log"></div>
+
+        <div id="reset-button">
+            <button id="reset" onclick="confirmReset()" class="reset-btn">リセット</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
