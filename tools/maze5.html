@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <title>MAZE v5</title>
+        <style>
+            canvas {
+                background: #ddd;
+                display: block;
+                margin: 0 auto;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="myCanvas" width="320" height="320"></canvas>
+        <br>
+        <div style="position: relative;">
+            <div style="position: absolute; left: 50px;">
+                <!--
+                <label>マップの大きさ(縦)/Height ※Odd,Over5 <input type="text" value="31" id="Height"></label>
+                <br><label>マップの大きさ(横)/Width ※Odd,Over5 <input type="text" value="31" id="Width"></label>
+                -->
+                <label>マップの大きさ(mapSize) ※Odd,Over5 <input type="text" value="21" id="mapSize"></label>
+                <br><label>明るさ/Light Level <input type="text" value="2" id="lightLevel"></label>
+
+                <br>
+                <p>&lt;Difficulty&gt;
+                <br>map size 11 : ★☆☆☆☆
+                <br>map size 21 : ★★★☆☆
+                <br>map size 31 : ★★★★☆
+
+                <br><br><button onclick="reset()" style="width: 200px;height: 50px"><strong>START</strong></button>
+                
+                <p><strong>ゴールは右下にあります</strong></p>
+
+                <p>
+                <span style="color: #0095DD; background-color: #ddd;">■</span> : プレイヤー/player
+                <br><span style="color: #fff; background-color: #ddd;">■</span> : 道/way
+                <br><span style="color: #000; background-color: #ddd;">■</span> : 壁/wall
+                <br><span style="color: #4c0078; background-color: #ddd;">■</span> : 奈落/void
+                <br><span style="color: #f55; background-color: #ddd;">■</span> : スタート/Start
+                <br><span style="color: #ffd15c; background-color: #ddd;">■</span> : ゴール/Goal
+                </p>
+                <p>
+                <b>→(ArrowRight)</b> : 右を向く
+                <br><b>←(ArrowLeft)</b> : 左を向く
+                <br><b>↑(ArrowUp)</b> : 前へ
+                </p>
+            </div>
+            
+            <canvas id="ansCanvas" width="240" height="240"> <!--ANSWER--></canvas>
+            <div style="position: absolute; left: 44%;">
+                <p>↑HINT(上が北です)↑</p>
+                <label>HINT: <input type="text" id="hintTF"></label>
+                <p>↑"ON" or "OFF"</p>
+
+                <div id="debug1"></div>
+                <div id="compass"></div>
+                <p>&lt;COMPASS&gt;</p>
+                <div id="compass1"></div>
+                <div id="compass2"></div>
+                <div id="compass3"></div>
+            </div>
+            
+            <canvas id="helpCanvas" width="120" height="120" style="position:relative; left: 25%; bottom: 500px;"> <!--Helper--> </canvas>
+            <span style="position:absolute; left: 72%; bottom: 450px;"><p >NAVIGATION<!--DIRECTION TO GOAL--></p></span>
+            <div id="distance" style="position:absolute; left: 72%; bottom: 400px;"></div>
+
+        </div>
+        <script>
+            let maze=[];
+            let width=31;
+            let height=31;
+            let selfsize=50;
+            let light=2;
+
+
+            const canvas = document.getElementById("myCanvas");
+            const ctx = canvas.getContext("2d");
+
+            const canvas2 = document.getElementById("ansCanvas");
+            const ctx2 = canvas2.getContext("2d");
+
+            const canvas3 = document.getElementById("helpCanvas");
+            const ctx3 = canvas3.getContext("2d");
+
+            let rightPressed=false;
+            let leftPressed=false;
+            let upPressed=false;
+            let downPressed=false;
+
+            document.addEventListener("keydown", keyDownHandler, false);
+            document.addEventListener("keyup", keyUpHandler, false);
+
+            let H=document.getElementById("mapSize");
+            let W=document.getElementById("mapSize");
+            let LL=document.getElementById("lightLevel");
+
+            let HINT=document.getElementById("hintTF");
+
+            let distance=document.getElementById("distance");
+
+            height=Number(H.value);
+            width=Number(W.value);
+            if(Number(LL.value)<height)light=Number(LL.value);
+            let hint=(HINT.value=="ON");
+
+            selfsize=Math.floor(Math.min(canvas.width,canvas.height)/(light*2+1))
+            if(selfsize%2==1)selfsize--;
+
+            let x;
+            let y;
+            let dir=1;
+
+            debug1=document.getElementById("debug1");
+            compass=document.getElementById("compass");
+            compass1=document.getElementById("compass1");
+            compass2=document.getElementById("compass2");
+            compass3=document.getElementById("compass3");
+
+            // ctx2.beginPath();
+            // ctx2.rect(50,50, 50,50);
+            // ctx2.fillStyle = "#000"; //パドルの色
+            // ctx2.fill();
+            // ctx2.closePath();
+
+            //play();////MAIN
+            //console.log("END");
+
+            function createMaze(width,height){ //refered to https://ai.metro.tokyo.lg.jp
+                const maze = Array.from({length: height},()=>Array(width).fill('#'));
+
+                const startX = Math.floor(Math.random()*width);
+                const startY = Math.floor(Math.random()*height);
+                maze[startY][startX]=' ';
+
+                const stack = [[startX,startY]];
+                const directions = [[0,1],[1,0],[0,-1],[-1,0]];
+
+                while (stack.length >0){
+                    const [x,y]=stack[stack.length-1];
+                    shuffleArray(directions);
+                    let found = false;
+
+                    for (const [dx,dy] of directions){
+                        const nx = x+dx*2;
+                        const ny = y+dy*2;
+                        if(0<=nx && nx<width && 0<=ny && ny<height && maze[ny][nx] === '#'){
+                            maze[ny-dy][nx-dx]=' ';
+                            maze[ny][nx]=' ';
+                            stack.push([nx,ny]);
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found){
+                        stack.pop();
+                    }
+                }
+
+                maze[1][1]='S';
+                maze[height-2][width-2]='G';
+
+                const maze2 = Array.from({length :height+2},()=>Array(width+2).fill('#'));
+                for(let j=0;j<width+2;j++){
+                    maze2[0][j]='%';
+                    maze2[height+1][j]='%';
+                }
+                for(let i=1;i<height+1;i++){
+                    maze2[i][0]='%';
+                    maze2[i][width+1]='%';
+                    for(let j=1;j<width+1;j++){
+                        maze2[i][j]=maze[i-1][j-1];
+                    }
+                }
+
+                return maze2;
+            }
+
+            function printMaze(maze){
+                maze.forEach(row => {
+                    console.log(row.join(''));
+                });
+            }
+
+            function shuffleArray(array){
+                for (let i=array.length-1;i>0;i--){
+                    const j=Math.floor(Math.random()*(i+1));
+                    [array[i],array[j]]=[array[j],array[i]]
+                }
+            }
+
+            function keyDownHandler(e) {
+                if(e.key=="Right" || e.key=="ArrowRight" || e.key=="6"){
+                    rightPressed=true;
+                } 
+                else if (e.key=="Left" || e.key=="ArrowLeft" || e.key=="4"){
+                    leftPressed=true;
+                }
+                else if (e.key=="Up" || e.key=="ArrowUp" || e.key=="8"){
+                    upPressed=true;
+                }
+                else if (e.key=="Down" || e.key=="ArrowDown" || e.key=="2"){
+                    downPressed=true;
+                }
+            }
+
+            function keyUpHandler(e) {
+                if(e.key=="Right" || e.key=="ArrowRight" || e.key=="6"){
+                    rightPressed=false;
+                } 
+                else if (e.key=="Left" || e.key=="ArrowLeft" || e.key=="4"){
+                    leftPressed=false;
+                }
+                else if (e.key=="Up" || e.key=="ArrowUp" || e.key=="8"){
+                    upPressed=false;
+                }
+                else if (e.key=="Down" || e.key=="ArrowDown" || e.key=="2"){
+                    downPressed=false;
+                }
+            }
+
+            function reset() {
+                console.clear();
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                ctx2.clearRect(0,0,canvas2.width,canvas2.height);
+                
+                //let H=document.getElementById("Height");
+                //let W=document.getElementById("Width");
+                //let LL=document.getElementById("lightLevel");
+                height=Number(H.value);
+                width=Number(W.value);
+                light=Number(LL.value);
+                // console.log(height,width,light);
+
+                selfsize=Math.floor(Math.min(canvas.width,canvas.height)/(light*2+1))
+                if(selfsize%2==1)selfsize--;
+                
+                maze = createMaze(width,height);
+                printMaze(maze);
+                x=2;
+                y=2;
+                dir=1;
+
+                play();
+            }
+
+            
+
+            //
+            function next(){
+                let qx=x;
+                let qy=y;
+                if(dir%4==0){
+                    qx++;
+                }else if(dir%4==1 || dir%4==-3){
+                    qy--;
+                }else if(dir%4==2 || dir%4==-2){
+                    qx--;
+                }else if(dir%4==3 || dir%4==-1){
+                    qy++;
+                }
+
+                if(0<=qx && qx<width+2 && 0<=qy && qy<height+2 && maze[qy][qx]!="#" && maze[qy][qx]!="%"){
+                    x=qx;
+                    y=qy;
+                }
+            }
+
+            function targetDraw(drawX,drawY,ttx,tty){
+                if(0<=drawX && drawX<width+2 && 0<=drawY && drawY<height+2){
+                    if(maze[drawY][drawX]==' '){
+                        ctx.beginPath();
+                        ctx.rect(canvas.width/2-selfsize/2+ttx*selfsize, canvas.height/2-selfsize/2+tty*selfsize, selfsize, selfsize);
+                        ctx.fillStyle = "#fff"; //パドルの色
+                        ctx.fill();
+                        ctx.closePath();
+                    }else if(maze[drawY][drawX]=='S'){
+                        ctx.beginPath();
+                        ctx.rect(canvas.width/2-selfsize/2+ttx*selfsize, canvas.height/2-selfsize/2+tty*selfsize, selfsize, selfsize);
+                        ctx.fillStyle = "#f55"; //パドルの色
+                        ctx.fill();
+                        ctx.closePath();
+                    }else if(maze[drawY][drawX]=='G'){
+                        ctx.beginPath();
+                        ctx.rect(canvas.width/2-selfsize/2+ttx*selfsize, canvas.height/2-selfsize/2+tty*selfsize, selfsize, selfsize);
+                        ctx.fillStyle = "#ffd15c"; //パドルの色
+                        ctx.fill();
+                        ctx.closePath();
+                    }else if(maze[drawY][drawX]=='%'){
+                        ctx.beginPath();
+                        ctx.rect(canvas.width/2-selfsize/2+ttx*selfsize, canvas.height/2-selfsize/2+tty*selfsize, selfsize, selfsize);
+                        ctx.fillStyle = "#4c0078"; //パドルの色
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                    else{
+                        ctx.beginPath();
+                        ctx.rect(canvas.width/2-selfsize/2+ttx*selfsize, canvas.height/2-selfsize/2+tty*selfsize, selfsize, selfsize);
+                        ctx.fillStyle = "#000"; //パドルの色
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }else{
+                    ctx.beginPath();
+                    ctx.rect(canvas.width/2-selfsize/2+ttx*selfsize, canvas.height/2-selfsize/2+tty*selfsize, selfsize, selfsize);
+                    ctx.fillStyle = "#4c0078"; //パドルの色
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+            
+            function play() {
+                if(rightPressed){
+                    dir--;
+                    rightPressed=false;
+                } else if(leftPressed){
+                    dir++;
+                    leftPressed=false;
+                }else if(upPressed){
+                    // dir=1;
+                    next();
+                    upPressed=false;
+                }
+                // debug1.innerHTML=dir%4;
+                if(dir%4==0){
+                    // compass.innerHTML="   \nN← \n   ";
+                    compass1.innerHTML="   ";
+                    compass2.innerHTML="N← ";
+                    compass3.innerHTML="   ";
+                }else if(dir%4==1 || dir%4==-3){
+                    // compass.innerHTML=" N \n ↑ \n   ";
+                    compass1.innerHTML=" N ";
+                    compass2.innerHTML=" ↑ ";
+                    compass3.innerHTML="   ";
+                }else if(dir%4==2 || dir%4==-2){
+                    // compass.innerHTML="   \n →N \n   ";
+                    compass1.innerHTML="   ";
+                    compass2.innerHTML=" →N";
+                    compass3.innerHTML="   ";
+                }else if(dir%4==3 || dir%4==-1){
+                    // compass.innerHTML="   \n ↓ \n N ";
+                    compass1.innerHTML="   ";
+                    compass2.innerHTML=" ↓ ";
+                    compass3.innerHTML=" N ";
+                }
+                
+                //targetDraw
+                for(let tx=x-light;tx<=x+light;tx++){
+                    for(let ty=y-light;ty<=y+light;ty++){
+                        // targetDraw(tx,ty);
+                        
+                        let ttx;
+                        let tty;
+                        ttx=tx-x;
+                        tty=ty-y;
+                        if(dir%4==0){
+                            let temp=ttx;
+                            ttx= tty;
+                            tty=temp *-1;
+                             //(y,-x)
+                        }else if(dir%4==1 || dir%4==-3){
+                            ;   //(x,y)
+                        }else if(dir%4==2 || dir%4==-2){
+                            let temp=ttx;
+                            ttx=tty *-1;
+                            tty=temp; //(-y,x)
+                        }else{
+                            ttx=ttx*-1;
+                            tty=tty*-1;  //(-x,-y)
+                        }
+                        targetDraw(tx,ty,ttx,tty);
+                    }
+                }
+                drawSelf();
+                drawHelper();
+
+                hint=(HINT.value=="ON");
+                // console.log(hint);
+                if(hint){
+                    drawHint();
+                }else{
+                    ctx2.clearRect(0,0,canvas2.width,canvas2.height);
+                }
+                //if(hint){
+                //console.log("T");}
+                //}
+
+                if(0<=x && x<width+2 && 0<=y && y<height+2 && maze[y][x]=='G'){
+                    alert("GOAL!!\nclick \"start\" to restart");
+                } else{
+                    animationId=requestAnimationFrame(play);
+                }
+
+            }
+            
+            
+            function drawSelf() {
+                ctx.beginPath();
+                ctx.rect(canvas.width/2-selfsize/2, canvas.height/2-selfsize/2, selfsize, selfsize);
+                ctx.fillStyle = "#0095DD"; //パドルの色
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            function drawHint() {
+                // console.log("RUN")
+                let sq_size=Math.floor(canvas2.height/Math.max(width,height));
+                // console.log(sq_size);
+                for(let i=0;i<height+2;i++){
+                    for(let j=0;j<width+2;j++){
+                        if(maze[i][j]==' '){
+                            ctx2.beginPath();
+                            ctx2.rect(sq_size*j,sq_size*i,sq_size,sq_size);
+                            ctx2.fillStyle = "#fff"; //パドルの色
+                            ctx2.fill();
+                            ctx2.closePath();
+                        }else if(maze[i][j]=='S'){
+                            ctx2.beginPath();
+                            ctx2.rect(sq_size*j,sq_size*i,sq_size,sq_size);
+                            ctx2.fillStyle = "#f55"; //パドルの色
+                            ctx2.fill();
+                            ctx2.closePath();
+                        }else if(maze[i][j]=='G'){
+                            ctx2.beginPath();
+                            ctx2.rect(sq_size*j,sq_size*i,sq_size,sq_size);
+                            ctx2.fillStyle = "#ffd15c"; //パドルの色
+                            ctx2.fill();
+                            ctx2.closePath();
+                        }else if(maze[i][j]=='%'){
+                            ctx2.beginPath();
+                            ctx2.rect(sq_size*j,sq_size*i,sq_size,sq_size);
+                            ctx2.fillStyle = "#4c0078"; //パドルの色
+                            ctx2.fill();
+                            ctx2.closePath();
+                        }
+                        else{
+                            ctx2.beginPath();
+                            ctx2.rect(sq_size*j,sq_size*i,sq_size,sq_size);
+                            ctx2.fillStyle = "#000"; //パドルの色
+                            ctx2.fill();
+                            ctx2.closePath();
+                        }
+                    }
+                }
+
+                ctx2.beginPath();
+                ctx2.rect(sq_size*x,sq_size*y,sq_size,sq_size);
+                ctx2.fillStyle = "#0095DD"; //パドルの色
+                ctx2.fill();
+                ctx2.closePath();
+            }
+
+            function drawHelper() {
+                const plus=120;
+                let direction; //=(height-2-y)/(width-2-x)
+                let target=[0,0];
+                if((height-2-y)==0){
+                    target[0]=plus;
+                }else if((width-2-x)==0){
+                    target[1]=plus;
+                }else{
+                    direction=(height-2-y)/(width-2-x);
+                    console.log(direction);
+                    if(1<direction){
+                        target[0]=plus/direction;
+                        target[1]=plus;
+                    }else if(0<direction && direction<1){
+                        target[1]=direction*plus;
+                        target[0]=plus;
+                    }else if(direction==1){
+                        target[0]=plus;
+                        target[1]=plus;
+                    }else if(-1<=direction){
+                        target[0]=plus;
+                    }else{
+                        target[1]=plus;
+                    }
+                }
+
+                // if(dir%4==0){
+                //     let temp=target[0];
+                //     target[0]= target[1];
+                //     target[1]=temp *-1;
+                //         //(y,-x)
+                // }else if(dir%4==1 || dir%4==-3){
+                //     ;   //(x,y)
+                // }else if(dir%4==2 || dir%4==-2){
+                //     let temp=target[0];
+                //     target[0]=target[1] *-1;
+                //     target[1]=temp; //(-y,x)
+                // }else{
+                //     target[0]=target[0]*-1;
+                //     target[1]=target[1] *-1;  //(-x,-y)
+                // }
+
+                ctx3.clearRect(0,0,canvas3.width,canvas3.height);
+
+                ctx3.beginPath();
+                ctx3.rect(0,0,10,10);
+                ctx3.fillStyle = "#0095DD"; //パドルの色
+                ctx3.fill();
+                ctx3.closePath();
+
+                ctx3.beginPath();
+                ctx3.rect(Math.max(target[0]-10,0),Math.max(0,target[1]-10),10,10);
+                ctx3.fillStyle = "#777"; //パドルの色
+                ctx3.fill();
+                ctx3.closePath();
+
+                distance.innerHTML="distance:"+Math.round(Math.sqrt((width-2-x)*(width-2-x)+(height-2-y)*(height-2-y))*10)/10;
+
+            }
+
+
+        //矢印加速  
+        </script>
+    </body>
+</html>
