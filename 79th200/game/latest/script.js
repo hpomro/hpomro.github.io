@@ -148,7 +148,8 @@ function init2() {
     action(MODE_CELL, p2);
 
     setMode(DEFULT_MODE);
-
+    current_player = (Math.random() < 0.5 ? 1 : 2);
+    alert(`先攻 : ${current_player == 1 ? P1 : P2}`);
     locked = false;
 }
 
@@ -365,7 +366,7 @@ function processCheck() {
                     // 【既存の自分の水】供給路の強度は一気に更新
                     newBoard[y][x].s = pot.s;
                 }
-            } else {
+            } else if (!locked) {
                 // --- ここから修正・追加：生きている供給がない（pot.s === 0）場合の処理 ---
                 if (current.player === null) {
                     // 【供給断絶中の水流からの拡散（1ターン遅れて発生）】
