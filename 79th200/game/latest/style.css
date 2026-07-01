@@ -1,0 +1,191 @@
+:root {
+    --p1-color: #ff4d4d;
+    --p2-color: #4d79ff;
+    --wall-color: #444;
+    --empty-color: #eee;
+    --cell-size: 70px;
+    --cell-margin: 7px;
+}
+
+body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgb(240, 240, 240);
+    background-image: url(./logo79th200.jpg);
+    background-size: 20em;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#setup-screen {
+    width: min(80%, 1000px);
+    font-size: large;
+    text-align: center;
+}
+
+#setup-screen button {
+    width: 80%;
+    height: 3em;
+    font-size: large;
+    margin-top: 1em;
+}
+
+#setup-screen input {
+    font-size: large;
+}
+
+#setup-screen,
+#game-screen {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    /* position: fixed; */
+}
+
+#game-screen {
+    padding-left: 3em;
+    padding-right: 3em;
+    padding-bottom: 2em;
+}
+
+#info-panel {
+    font-size: larger;
+}
+
+.input-group {
+    margin-bottom: 10px;
+}
+
+input {
+    padding: 5px;
+    width: 60px;
+}
+
+input[type="text"] {
+    width: 100px;
+}
+
+#board {
+    display: grid;
+    background: #ccc;
+    border: 4px solid var(--wall-color);
+    position: relative;
+}
+
+.cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    background: var(--empty-color);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: white;
+    box-sizing: border-box;
+}
+
+/* 仕切りの表現 */
+.wall-v,
+.wall-h {
+    position: absolute;
+    background: var(--wall-color);
+    z-index: 10;
+}
+
+.wall-v {
+    width: var(--cell-margin);
+    height: var(--cell-size);
+    top: 0;
+    cursor: pointer;
+}
+
+.wall-h {
+    height: var(--cell-margin);
+    width: var(--cell-size);
+    left: 0;
+    cursor: pointer;
+}
+
+.wall-v.hidden-wall,
+.wall-h.hidden-wall {
+    background: transparent;
+}
+
+.wall-v.hidden-wall:hover,
+.wall-h.hidden-wall:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* 水の状態 */
+.cell.p1 {
+    background: var(--p1-color);
+}
+
+.cell.p2 {
+    background: var(--p2-color);
+}
+
+.cell.source {
+    border: 4px inset rgba(255, 255, 255, 0.5);
+}
+
+#action-panel {
+    margin: 15px 0;
+}
+
+.mode-btn {
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.mode-btn.active {
+    background: #333;
+    color: white;
+}
+
+#message-log {
+    margin-top: 10px;
+    color: #666;
+    font-size: 0.9rem;
+    min-height: 1.2em;
+}
+
+.reset-btn {
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #f44336;
+    /* 赤色 */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    margin-left: 10px;
+}
+
+.reset-btn:hover {
+    background-color: #d32f2f;
+}
+
+#rules {
+    width: min(80%, 1000px);
+    background-color: rgb(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.p1-color-class {
+    color: var(--p1-color);
+}
+
+.p2-color-class {
+    color: var(--p2-color);
+}
