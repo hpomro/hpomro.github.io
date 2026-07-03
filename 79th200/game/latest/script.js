@@ -4,13 +4,13 @@ const MODE_RAG = 'rag';
 const MODE_SPONGE = 'sponge';
 const MODE_CELL = 'cell';
 const MODE_SKIP = 'skip';
-const DEFULT_MODE = MODE_WALL;
+const DEFAULT_MODE = MODE_WALL;
 
 const TYPE_SOURCE = 'source';
 const TYPE_WALL = 'wall';
 const TYPE_FLOW = 'flow';
 
-const DEFAULT_SPONGE_COOL_TIME = 20;
+const DEFAULT_SPONGE_COOL_TIME = 16;
 
 /** 盤面の高さ */
 let H;
@@ -41,10 +41,13 @@ let changes_arr = null;
 let result = null;
 /** 仕切りの幅(通常時) */
 let default_cell_margin = 7;
+/** 操作ロック(内部処理用) */
 let locked = false;
 let sponge_cool_time = { 1: 0, 2: 0 };
 /** 各プレイヤーの水源の初期数 */
 let initialSources;
+/** ターンカウンター */
+let turnCount;
 
 /** マスのピクセル数 */
 let cell_size_px = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell-size'));
@@ -67,7 +70,25 @@ window.onload = () => {
     // console.log(DEFAULT_CELL_SIZE_PX);
 };
 
+/** ターンごとのグローバル変数の初期化 */
+function initVars() {
+    current_player = 1;
+    sources = { 1: 0, 2: 0 };
+    board = [];
+    wallsV = [];
+    wallsH = [];
+    lastAction = '';
+    current_mode = DEFAULT_MODE;
+    result = null;
+    changed = null;
+    changes_arr = null;
+    sponge_cool_time = { 1: 0, 2: 0 };
+    turnCount = 1;
+}
+
+/** 初期化 */
 function initGame() {
+    initVars();
     H = parseInt(document.getElementById('input-size').value); // 盤面の高さ
     W = parseInt(document.getElementById('input-size').value); // 盤面の幅
     if (H > 100 || W > 100) { console.log("The size is too big."); alert("サイズが大きすぎます"); return; }
@@ -77,9 +98,6 @@ function initGame() {
     P2 = document.getElementById('p2-name').value || 'p2';
     document.documentElement.style.setProperty('--p1-color', document.getElementById('p1-color').value || document.documentElement.style.getPropertyValue('--p1-color'));
     document.documentElement.style.setProperty('--p2-color', document.getElementById('p2-color').value || document.documentElement.style.getPropertyValue('--p2-color'));
-
-    changed = null;
-    changes_arr = null;
 
     /** 初期の水源の所持数 */
     initialSources = Math.floor((H + W) / 4);
@@ -108,6 +126,7 @@ function initGame() {
     updateUI();
 }
 
+/** ランダムな盤面を作成 */
 function init2() {
     locked = true;
     let candidates_wall = [];
@@ -147,7 +166,7 @@ function init2() {
     action(MODE_CELL, p1);
     action(MODE_CELL, p2);
 
-    setMode(DEFULT_MODE);
+    setMode(DEFAULT_MODE);
     current_player = (Math.random() < 0.5 ? 1 : 2);
     alert(`先攻 : ${current_player == 1 ? P1 : P2}`);
     locked = false;
@@ -165,7 +184,7 @@ function setMode(mode) {
     }
 
     if (mode === MODE_SKIP) {
-        setTimeout(endTurn, 50);
+        action(MODE_SKIP, null);
     }
 }
 
@@ -230,6 +249,7 @@ function renderBoard() {
 }
 
 function action(mode, obj) {
+
     if (sponge_cool_time[current_player] > 0) {
         sponge_cool_time[current_player]--;
     }
@@ -239,6 +259,9 @@ function action(mode, obj) {
     }
     else if (mode === MODE_CELL) {
         handleCellClick(obj.x, obj.y);
+    }
+    else if (mode === MODE_SKIP) {
+        setTimeout(endTurn, 50);
     }
 }
 
@@ -264,7 +287,7 @@ function handleCellClick(x, y) {
         lastAction = MODE_RAG;
         endTurn();
     } else if (current_mode === MODE_SPONGE) {
-        if (sponge_cool_time[current_player] !== 0) return log(`スポンジのクールタイム中です (残り ${Math.floor(sponge_cool_time[current_player] / 2)} ターン)`);
+        if (sponge_cool_time[current_player] !== 0) return log(`スポンジのクールタイム中です (残り ${sponge_cool_time[current_player]} ターン)`);
         // console.log("sponge");
         const size = 2;
         changes_arr = [];
@@ -312,8 +335,13 @@ function endTurn() {
         }, 100);
     }
 
-    setTimeout(() => { setMode(MODE_WALL); }, 100);
+    setTimeout(() => { setMode(DEFAULT_MODE); }, 100);
 
+    if (!locked) {
+        // ターンカウントを上げる
+        turnCount += 0.5;
+        document.getElementById("turn-count").innerText = `${Math.floor(turnCount)} ターン目`;
+    }
 }
 
 // 新アルゴリズム
@@ -521,24 +549,11 @@ function confirmReset() {
 }
 
 function resetGame() {
-    // 1. グローバル変数の初期化
-    current_player = 1;
-    sources = { 1: 0, 2: 0 };
-    board = [];
-    wallsV = [];
-    wallsH = [];
-    lastAction = '';
-    current_mode = 'source';
-    result = null;
-    changed = null;
-    changes_arr = null;
-    sponge_cool_time = { 1: 0, 2: 0 };
-
-    // 2. 画面表示の切り替え
+    // 1. 画面表示の切り替え
     gameScreen.classList.add('hidden');
     setupScreen.classList.remove('hidden');
 
-    // 3. モードボタンの見た目を初期状態に戻す
+    // 2. モードボタンの見た目を初期状態に戻す
     setMode('source');
 
     // メッセージログをクリア

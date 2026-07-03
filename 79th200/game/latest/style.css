@@ -40,6 +40,7 @@ body {
 
 #setup-screen,
 #game-screen {
+    position: relative;
     background: white;
     padding: 20px;
     border-radius: 8px;
@@ -193,4 +194,10 @@ input[type="text"] {
 #turn-display {
     font-size: x-large;
     font-weight: bold;
+}
+
+#turn-count {
+    position: absolute;
+    right: 1em;
+    top: 2em;
 }
