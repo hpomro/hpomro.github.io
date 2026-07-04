@@ -7,12 +7,12 @@
     <meta name="robots" content="noindex">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
-    <title>The Flooded Floor v1.1</title>
+    <title>The Flooded Floor v1.2</title>
 </head>
 
 <body>
-    <div id="setup-screen">
-        <h1>The Flooded Floor v1.1</h1>
+    <div id="setup-screen" class="font-round">
+        <h1>The Flooded Floor v1.2</h1>
         <p style="font-family: 'Courier New', Courier, monospace;">presented by 79th 3200</p>
         <br>
         <div class="input-group">
@@ -22,19 +22,19 @@
         <div class="input-group">
             <label>プレイヤー1の名前: </label>
             <input type="text" id="p1-name" value="p1">
-            &nbsp;<label>色: </label><input type="color" id="p1-color" value="#ff4d4d">
+            &nbsp;<label>色: </label><input type="color" id="p1-color" value="#c465c5">
         </div>
         <div class="input-group">
             <label>プレイヤー2の名前: </label>
             <input type="text" id="p2-name" value="p2">
-            &nbsp;<label>色: </label><input type="color" id="p2-color" value="#4d79ff">
+            &nbsp;<label>色: </label><input type="color" id="p2-color" value="#4dacc6">
         </div>
         <br>
         <button id="start-btn">ゲーム開始 / Start the Game</button>
     </div>
 
-    <div id="game-screen" class="hidden">
-        <div id="info-panel">
+    <div id="game-screen" class="hidden" class="font-round">
+        <div id="info-panel" class="font-round">
             <div id="turn-display"></div>
             <div id="source-count"></div>
             <div id="score-display"></div>
@@ -62,7 +62,7 @@
         </div>
     </div>
 
-    <div id="rules">
+    <div id="rules" class="font-round">
         <h2>ルール</h2>
         <ul>
             <li>水を設置したり、仕切りを動かしたり、水を拭き取ったりして、自分の色の水を増やしていこう！</li>

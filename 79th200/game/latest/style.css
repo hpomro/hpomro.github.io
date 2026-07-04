@@ -1,6 +1,6 @@
 :root {
-    --p1-color: #ff4d4d;
-    --p2-color: #4d79ff;
+    --p1-color: #c465c5;
+    --p2-color: #4dacc6;
     --wall-color: #444;
     --empty-color: #eee;
     --cell-size: 70px;
@@ -200,4 +200,8 @@ input[type="text"] {
     position: absolute;
     right: 2.5em;
     top: 2em;
+}
+
+.font-round {
+    font-family: 'Century Gothic', 'Meiryo', 'Hiragino Kaku Gothic Pro';
 }

@@ -110,7 +110,10 @@ function initGame() {
 
     // 表示サイズ初期化
     const WINDOW_SIZE_PX = Math.min(window.innerHeight, window.innerWidth);
-    cell_size_px = WINDOW_SIZE_PX * 1.0 / ((Math.max(H, W) + 2) + ((Math.max(H, W) + 2) - 1) / 10.0);
+    const num = Math.max(H, W);
+    cell_size_px = WINDOW_SIZE_PX * 1.0 / (num + 1);
+    // console.log(cell_size_px);
+
     // x*N + x/10 *(N-1) = SIZE
     // x(N+(N-1)/10)
 
@@ -221,9 +224,9 @@ function renderBoard() {
             // --- ここを修正：強さ(s)を表示する ---
             // 強さが 0 より大きい場合のみ数値を表示、それ以外は空にする
             cellDiv.innerText = cell.s > 0 ? cell.s : '';
+            cellDiv.style.fontSize = `${cell_size_px / 3}px`;
 
-            cellDiv.className = `cell ${cell.player ? 'p' + cell.player : ''} ${cell.type === TYPE_SOURCE ? TYPE_SOURCE : ''}`;
-            // cellDiv.innerText = (cell.d === undefined || cell.d === Infinity) ? '' : cell.d; // 変更
+            cellDiv.className = `cell ${cell.player ? 'p' + cell.player : ''} ${cell.type === TYPE_SOURCE ? 'source' : ''}`;
             cellDiv.onclick = () => action(MODE_CELL, { x: x, y: y });
 
             if (x < H - 1) {
@@ -243,17 +246,11 @@ function renderBoard() {
                 container.appendChild(hWall);
             }
             container.appendChild(cellDiv);
-
         }
     }
 }
 
 function action(mode, obj) {
-
-    if (sponge_cool_time[current_player] > 0) {
-        sponge_cool_time[current_player]--;
-    }
-
     if (mode === MODE_WALL) {
         handleWallClick(obj.type, obj.x, obj.y);
     }
@@ -288,8 +285,7 @@ function handleCellClick(x, y) {
         endTurn();
     } else if (current_mode === MODE_SPONGE) {
         if (sponge_cool_time[current_player] !== 0) return log(`スポンジのクールタイム中です (残り ${sponge_cool_time[current_player]} ターン)`);
-        // console.log("sponge");
-        const size = 2;
+        const size = Math.floor((H + W) / 4);
         changes_arr = [];
         for (let ny = 0; ny < H; ny++) {
             for (let nx = 0; nx < W; nx++) {
@@ -341,6 +337,11 @@ function endTurn() {
         // ターンカウントを上げる
         turnCount += 0.5;
         document.getElementById("turn-count").innerText = `${Math.floor(turnCount)} ターン目`;
+    }
+
+    // スポンジのクールタイムを減らす
+    if (sponge_cool_time[current_player] > 0) {
+        sponge_cool_time[current_player]--;
     }
 }
 
