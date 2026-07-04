@@ -205,3 +205,12 @@ input[type="text"] {
 .font-round {
     font-family: 'Century Gothic', 'Meiryo', 'Hiragino Kaku Gothic Pro';
 }
+
+#survey {
+    width: min(80%, 1000px);
+    background-color: rgb(255, 255, 255, 0.7);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}

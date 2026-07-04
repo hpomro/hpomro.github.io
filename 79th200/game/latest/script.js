@@ -111,7 +111,7 @@ function initGame() {
     // 表示サイズ初期化
     const WINDOW_SIZE_PX = Math.min(window.innerHeight, window.innerWidth);
     const num = Math.max(H, W);
-    cell_size_px = WINDOW_SIZE_PX * 1.0 / (num + 1);
+    cell_size_px = WINDOW_SIZE_PX * 1.0 / (num + 2);
     // console.log(cell_size_px);
 
     // x*N + x/10 *(N-1) = SIZE
