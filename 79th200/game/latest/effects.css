@@ -1,0 +1,178 @@
+:root {
+    --rag-effect-color-1: rgba(255, 255, 152, 0.9);
+    --rag-effect-color-2: rgba(255, 255, 152, 0.6);
+    --sponge-effect-color-outer: rgb(35, 43, 148);
+    --wall-remove-effect-color: rgb(52, 212, 94);
+}
+
+/* ==========================================
+   アクション・エフェクト用アニメーション
+========================================== */
+
+/* 1. 水源設置：波紋が広がるようなエフェクト */
+.effect-source {
+    position: relative;
+}
+
+.effect-source::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 4px solid rgba(255, 255, 255, 0.8);
+    box-sizing: border-box;
+    border-radius: 50%;
+    animation: ripple 0.5s ease-out forwards;
+    pointer-events: none;
+    z-index: 5;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0.3);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+}
+
+/* 2. 雑巾：拭き取ったマスが一瞬白くフラッシュする */
+.effect-rag {
+    animation: flash-rag 0.4s ease-out;
+}
+
+@keyframes flash-rag {
+    0% {
+        background-color: rgba(255, 255, 255, 0.9);
+        transform: scale(0.95);
+    }
+
+    100% {
+        background-color: var(--empty-color);
+        transform: scale(1);
+    }
+}
+
+/* 3. スポンジ：範囲全体がシュッと引き締まって消えるような感覚 */
+.effect-sponge {
+    animation: flash-sponge 0.5s ease-out;
+}
+
+@keyframes flash-sponge {
+    0% {
+        background-color: rgba(255, 255, 255, 0.9);
+        box-shadow: inset 0 0 15px white;
+        transform: scale(1.05);
+    }
+
+    100% {
+        background-color: var(--empty-color);
+        transform: scale(1);
+    }
+}
+
+/* 4. 壁設置：黄色くピカピカッと光って出現する */
+.effect-wall-place {
+    animation: wall-place-blink 0.4s ease-in-out 2;
+}
+
+@keyframes wall-place-blink {
+
+    0%,
+    100% {
+        background-color: var(--wall-color);
+    }
+
+    50% {
+        background-color: #ffeb3b;
+        box-shadow: 0 0 8px #ffeb3b;
+    }
+}
+
+/* 5. 壁撤去：赤く燃え尽きるように消える効果（非表示の壁も一瞬見えるようにする） */
+.effect-wall-remove {
+    display: block !important;
+    animation: wall-remove-fade 0.5s ease-out forwards;
+}
+
+@keyframes wall-remove-fade {
+    0% {
+        background-color: var(--wall-remove-effect-color);
+        opacity: 1;
+    }
+
+    100% {
+        background-color: transparent;
+        opacity: 0;
+        display: none;
+    }
+}
+
+/* ==========================================
+   スポンジのアクション・エフェクト
+========================================== */
+.effect-sponge {
+    animation: sponge-flash-absorb 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    position: relative;
+    z-index: 5;
+    /* 隣のマスより少し前面に出して光らせる */
+}
+
+@keyframes sponge-flash-absorb {
+    0% {
+        /* 発動の瞬間：強力に白く発光し、少しだけ浮き上がる（拡大） */
+        box-shadow: inset 0 0 20px 10px #ffffff, 0 0 20px var(--sponge-effect-color-outer);
+        filter: brightness(2);
+        transform: scale(1.05);
+    }
+
+    30% {
+        /* 最大発光：マス全体が光に包まれる */
+        box-shadow: inset 0 0 30px 20px #ffffff, 0 0 30px var(--sponge-effect-color-outer);
+        filter: brightness(2.5);
+        transform: scale(0.95);
+    }
+
+    100% {
+        /* 収束：光が消えて元の空きマスの状態に自然に馴染む */
+        box-shadow: inset 0 0 0px 0px transparent, 0 0 0px transparent;
+        filter: brightness(1);
+        transform: scale(1);
+    }
+}
+
+/* ==========================================
+   雑巾のアクション・エフェクト
+========================================== */
+.effect-rag {
+    animation: rag-wipe-flash 0.4s ease-out forwards;
+    position: relative;
+    z-index: 5;
+}
+
+@keyframes rag-wipe-flash {
+    0% {
+        /* 拭き取った瞬間：真っ白に近く発光し、少し縮む */
+        background-color: var(--rag-effect-color-1);
+        box-shadow: inset 0 0 15px #ffffff;
+        transform: scale(0.92);
+    }
+
+    40% {
+        /* 中間：光が引きつつ、元のサイズに戻り始める */
+        background-color: var(--rag-effect-color-2);
+        transform: scale(1.02);
+    }
+
+    100% {
+        /* 収束：完全に元の空きマスの色に馴染む */
+        background-color: var(--empty-color);
+        box-shadow: inset 0 0 0px transparent;
+        transform: scale(1);
+    }
+}

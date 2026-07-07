@@ -1,6 +1,8 @@
 :root {
-    --p1-color: #c465c5;
-    --p2-color: #4dacc6;
+    --p1-color: rgb(211, 115, 212);
+    --p2-color: rgb(95, 189, 214);
+    --p1-num-color: white;
+    --p2-num-color: white;
     --wall-color: #444;
     --empty-color: #eee;
     --cell-size: 70px;
@@ -213,4 +215,10 @@ input[type="text"] {
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 20px;
+}
+
+input[type="radio"] {
+  transform: scale(1.5); /* 1.5倍に拡大 */
+  /* accent-color: #e91e63; 色も変更可能（主要ブラウザ対応） */
+  /* margin-right: 6px; */
 }

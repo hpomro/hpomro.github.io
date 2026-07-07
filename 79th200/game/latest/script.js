@@ -21,7 +21,7 @@ let P1;
 /** プレイヤー2の名前 */
 let P2;
 /** ターンが回ってきたプレイヤー */
-let current_player = 1;
+let currentPlayer = 1;
 /** 所持する水源の数 */
 let sources = { 1: 0, 2: 0 };
 /** 各マスを管理する。中身:`{type(null,水源,水流),player,distance}`。0-indexed */
@@ -31,26 +31,28 @@ let wallsV = [];
 /** 下に仕切りがあるか */
 let wallsH = [];
 /** 現在のプレイヤーのモード */
-let current_mode = MODE_SOURCE;
+let currentMode = MODE_SOURCE;
 /** 最後の行動 */
 let lastAction = '';
 /** 更新されたマス */
 let changed = null;
-let changes_arr = null;
+let changesArr = null;
 /** 勝者 */
 let result = null;
 /** 仕切りの幅(通常時) */
-let default_cell_margin = 7;
+let defaultCellMargin = 7;
 /** 操作ロック(内部処理用) */
 let locked = false;
-let sponge_cool_time = { 1: 0, 2: 0 };
+let spongeCoolTime = { 1: 0, 2: 0 };
 /** 各プレイヤーの水源の初期数 */
 let initialSources;
 /** ターンカウンター */
 let turnCount;
+/** 先攻プレイヤー */
+let firstPlayer = 1;
 
 /** マスのピクセル数 */
-let cell_size_px = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell-size'));
+let cellSizePx = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell-size'));
 
 /** 設定画面 */
 const setupScreen = document.getElementById('setup-screen');
@@ -67,22 +69,31 @@ document.getElementById('reset').onclick = () => confirmReset();
 
 // DEBUG
 window.onload = () => {
-    // console.log(DEFAULT_CELL_SIZE_PX);
+    setInterval(startPageReflesh, 1000);
 };
+
+function startPageReflesh() {
+    document.getElementById("p1-name-show").innerText = document.getElementById("p1-name").value;
+    document.getElementById("p2-name-show").innerText = document.getElementById("p2-name").value;
+}
+
+// --- 32行目付近（changed や changesArr の近く）に追加 ---
+let lastWall = null;
 
 /** ターンごとのグローバル変数の初期化 */
 function initVars() {
-    current_player = 1;
+    currentPlayer = 1;
     sources = { 1: 0, 2: 0 };
     board = [];
     wallsV = [];
     wallsH = [];
     lastAction = '';
-    current_mode = DEFAULT_MODE;
+    currentMode = DEFAULT_MODE;
     result = null;
     changed = null;
-    changes_arr = null;
-    sponge_cool_time = { 1: 0, 2: 0 };
+    changesArr = null;
+    lastWall = null; // ★追加
+    spongeCoolTime = { 1: 0, 2: 0 };
     turnCount = 1;
 }
 
@@ -93,7 +104,7 @@ function initGame() {
     W = parseInt(document.getElementById('input-size').value); // 盤面の幅
     if (H > 100 || W > 100) { console.log("The size is too big."); alert("サイズが大きすぎます"); return; }
     else if (H == 1 || W == 1) { console.log("The size is too small."); alert("サイズが小さすぎます"); return; }
-    max_strength = H + W - 2; // 水源の強さ
+    maxStrength = H + W - 2; // 水源の強さ
     P1 = document.getElementById('p1-name').value || 'p1';
     P2 = document.getElementById('p2-name').value || 'p2';
     document.documentElement.style.setProperty('--p1-color', document.getElementById('p1-color').value || document.documentElement.style.getPropertyValue('--p1-color'));
@@ -111,15 +122,15 @@ function initGame() {
     // 表示サイズ初期化
     const WINDOW_SIZE_PX = Math.min(window.innerHeight, window.innerWidth);
     const num = Math.max(H, W);
-    cell_size_px = WINDOW_SIZE_PX * 1.0 / (num + 2);
+    cellSizePx = WINDOW_SIZE_PX * 1.0 / (num + 2);
     // console.log(cell_size_px);
 
     // x*N + x/10 *(N-1) = SIZE
     // x(N+(N-1)/10)
 
-    document.documentElement.style.setProperty('--cell-size', `${cell_size_px}px`);
-    document.documentElement.style.setProperty('--cell-margin', `${cell_size_px / 10.0}px`);
-    default_cell_margin = cell_size_px / 10.0;
+    document.documentElement.style.setProperty('--cell-size', `${cellSizePx}px`);
+    document.documentElement.style.setProperty('--cell-margin', `${cellSizePx / 10.0}px`);
+    defaultCellMargin = cellSizePx / 10.0;
 
     init2();
 
@@ -132,58 +143,60 @@ function initGame() {
 /** ランダムな盤面を作成 */
 function init2() {
     locked = true;
-    let candidates_wall = [];
+    let candidatesWall = [];
     for (let y = 1; y < H; y++) {
         for (let x = 1; x < W; x++) {
-            candidates_wall.push({ type: 'v', x: x, y: y });
-            candidates_wall.push({ type: 'h', x: x, y: y });
+            candidatesWall.push({ type: 'v', x: x, y: y });
+            candidatesWall.push({ type: 'h', x: x, y: y });
         }
     }
 
     const loop = (H + W) / 2;
     for (let cnt = 0; cnt < loop; cnt++) {
-        let iw = Math.floor(Math.random() * candidates_wall.length);
-        let w = candidates_wall[iw];
-        candidates_wall.slice(iw, 1);
-        current_mode = MODE_WALL;
+        let iw = Math.floor(Math.random() * candidatesWall.length);
+        let w = candidatesWall[iw];
+        candidatesWall.slice(iw, 1);
+        currentMode = MODE_WALL;
         action(MODE_WALL, w);
     }
 
-    let candidates_cell = [];
+    let candidatesCell = [];
     for (let y = 0; y < H; y++) {
         for (let x = 0; x < W; x++) {
             if (y !== (H / 2 | 0) || x !== (W / 2 | 0)) {
-                candidates_cell.push({ x: x, y: y });
+                candidatesCell.push({ x: x, y: y });
             }
         }
     }
     let idx1 = 0;
     let idx2 = 0;
     while (idx1 == idx2) {
-        idx1 = Math.floor(Math.random() * candidates_cell.length)
-        idx2 = Math.floor(Math.random() * candidates_cell.length);
+        idx1 = Math.floor(Math.random() * candidatesCell.length)
+        idx2 = Math.floor(Math.random() * candidatesCell.length);
     }
-    let p1 = candidates_cell[idx1];
-    let p2 = candidates_cell[idx2];
-    current_mode = MODE_SOURCE;
+    let p1 = candidatesCell[idx1];
+    let p2 = candidatesCell[idx2];
+    currentMode = MODE_SOURCE;
     action(MODE_CELL, p1);
     action(MODE_CELL, p2);
 
     setMode(DEFAULT_MODE);
-    current_player = (Math.random() < 0.5 ? 1 : 2);
-    alert(`先攻 : ${current_player == 1 ? P1 : P2}`);
+
+    firstPlayer = document.querySelector('input[name="first"]:checked')?.value === "random" ? (Math.random() < 0.5 ? 1 : 2) : Number(document.querySelector('input[name="first"]:checked')?.value);
+    alert(`先攻 : ${firstPlayer == 1 ? P1 : P2}`);
+    currentPlayer = firstPlayer;
     locked = false;
 }
 
 function setMode(mode) {
-    current_mode = mode;
+    currentMode = mode;
     document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`mode-${mode}`).classList.add('active');
 
     if (mode === MODE_WALL) {
-        document.documentElement.style.setProperty('--cell-margin', `${default_cell_margin * 1.3}px`);
+        document.documentElement.style.setProperty('--cell-margin', `${defaultCellMargin * 1.3}px`);
     } else {
-        document.documentElement.style.setProperty('--cell-margin', `${default_cell_margin}px`);
+        document.documentElement.style.setProperty('--cell-margin', `${defaultCellMargin}px`);
     }
 
     if (mode === MODE_SKIP) {
@@ -192,11 +205,13 @@ function setMode(mode) {
 }
 
 function updateUI() {
-    const pName = current_player === 1 ? P1 : P2;
-    const color = current_player === 1 ? 'var(--p1-color)' : 'var(--p2-color)';
+    const pName = currentPlayer === 1 ? P1 : P2;
+    const color = currentPlayer === 1 ? 'var(--p1-color)' : 'var(--p2-color)';
     document.getElementById('turn-display').innerText = `手番: ${pName}`;
     document.getElementById('turn-display').style.color = color;
-    document.getElementById('source-count').innerText = `残り水源: ${sources[current_player]} / ${initialSources}`;
+    document.getElementById('source-count').innerText = `残り水源: ${sources[currentPlayer]} / ${initialSources}`;
+    document.getElementById('sponge-cooltime').innerText = spongeCoolTime[currentPlayer] > 0 ? `(${spongeCoolTime[currentPlayer]})` : "";
+    document.getElementById('turn-count').innerText = `${Math.floor(turnCount)} ターン目`;
 
     let p1Count = 0, p2Count = 0;
     board.flat().forEach(c => {
@@ -214,34 +229,45 @@ function updateUI() {
 function renderBoard() {
     const container = document.getElementById('board');
     container.innerHTML = '';
-    container.style.gridTemplateColumns = `repeat(${H}, ${cell_size_px}px)`; // 空白NG!
+    container.style.gridTemplateColumns = `repeat(${H}, ${cellSizePx}px)`;
 
     for (let y = 0; y < W; y++) {
         for (let x = 0; x < H; x++) {
             const cell = board[y][x];
             const cellDiv = document.createElement('div');
 
-            // --- ここを修正：強さ(s)を表示する ---
-            // 強さが 0 より大きい場合のみ数値を表示、それ以外は空にする
             cellDiv.innerText = cell.s > 0 ? cell.s : '';
-            cellDiv.style.fontSize = `${cell_size_px / 3}px`;
+            cellDiv.style.fontSize = `${cellSizePx / 3}px`;
 
             cellDiv.className = `cell ${cell.player ? 'p' + cell.player : ''} ${cell.type === TYPE_SOURCE ? 'source' : ''}`;
+
+            // ★追加：セルの座標を特定するための属性
+            cellDiv.setAttribute('data-x', x);
+            cellDiv.setAttribute('data-y', y);
+
             cellDiv.onclick = () => action(MODE_CELL, { x: x, y: y });
 
             if (x < H - 1) {
                 const vWall = document.createElement('div');
                 vWall.className = `wall-v ${wallsV[y][x + 1] ? '' : 'hidden-wall'}`;
-                vWall.style.left = `${(x + 1) * cell_size_px - 3}px`;
-                vWall.style.top = `${y * cell_size_px}px`;
+
+                // ★追加：垂直壁の座標を特定するための属性
+                vWall.setAttribute('data-wall-v', `${x + 1}-${y}`);
+
+                vWall.style.left = `${(x + 1) * cellSizePx - 3}px`;
+                vWall.style.top = `${y * cellSizePx}px`;
                 vWall.onclick = (e) => { e.stopPropagation(); action(MODE_WALL, { type: 'v', x: x + 1, y: y }); };
                 container.appendChild(vWall);
             }
             if (y < W - 1) {
                 const hWall = document.createElement('div');
                 hWall.className = `wall-h ${wallsH[y + 1][x] ? '' : 'hidden-wall'}`;
-                hWall.style.left = `${x * cell_size_px}px`;
-                hWall.style.top = `${(y + 1) * cell_size_px - 3}px`;
+
+                // ★追加：水平壁の座標を特定するための属性
+                hWall.setAttribute('data-wall-h', `${x}-${y + 1}`);
+
+                hWall.style.left = `${x * cellSizePx}px`;
+                hWall.style.top = `${(y + 1) * cellSizePx - 3}px`;
                 hWall.onclick = (e) => { e.stopPropagation(); action(MODE_WALL, { type: 'h', x: x, y: y + 1 }); };
                 container.appendChild(hWall);
             }
@@ -263,16 +289,16 @@ function action(mode, obj) {
 }
 
 function handleCellClick(x, y) {
-    if (current_mode === MODE_SOURCE) {
-        if (sources[current_player] <= 0) return log("水源がありません");
+    if (currentMode === MODE_SOURCE) {
+        if (sources[currentPlayer] <= 0) return log("水源がありません");
         if (board[y][x].type !== null) return log("既に水があります");
 
         // 直接 board を触らず、予約(changed)だけ行う
-        sources[current_player]--;
-        changed = { x: x, y: y, type: TYPE_SOURCE, player: current_player, s: max_strength };
+        sources[currentPlayer]--;
+        changed = { x: x, y: y, type: TYPE_SOURCE, player: currentPlayer, s: maxStrength };
         lastAction = MODE_SOURCE;
         endTurn();
-    } else if (current_mode === MODE_RAG) {
+    } else if (currentMode === MODE_RAG) {
         if (board[y][x].type === null) return log("水がありません");
 
         // 水源を消す場合は在庫を戻す
@@ -283,10 +309,10 @@ function handleCellClick(x, y) {
         changed = { x: x, y: y, type: null, player: null, s: 0 };
         lastAction = MODE_RAG;
         endTurn();
-    } else if (current_mode === MODE_SPONGE) {
-        if (sponge_cool_time[current_player] !== 0) return log(`スポンジのクールタイム中です (残り ${sponge_cool_time[current_player]} ターン)`);
+    } else if (currentMode === MODE_SPONGE) {
+        if (spongeCoolTime[currentPlayer] !== 0) return log(`スポンジのクールタイム中です (残り ${spongeCoolTime[currentPlayer]} ターン)`);
         const size = Math.floor((H + W) / 4);
-        changes_arr = [];
+        changesArr = [];
         for (let ny = 0; ny < H; ny++) {
             for (let nx = 0; nx < W; nx++) {
                 if (Math.abs(x - nx) + Math.abs(y - ny) <= size) {
@@ -295,12 +321,12 @@ function handleCellClick(x, y) {
                         sources[board[ny][nx].player]++;
                     }
                     // 直接 board を触らず、予約(changed)だけ行う
-                    changes_arr.push({ x: nx, y: ny, type: null, player: null, s: 0 });
+                    changesArr.push({ x: nx, y: ny, type: null, player: null, s: 0 });
                 }
             }
         }
         lastAction = MODE_SPONGE;
-        sponge_cool_time[current_player] = DEFAULT_SPONGE_COOL_TIME;
+        spongeCoolTime[currentPlayer] = DEFAULT_SPONGE_COOL_TIME;
         endTurn();
     }
 }
@@ -310,14 +336,37 @@ function getAdjacentByWall(type, x, y) {
 }
 
 function endTurn() {
+    // ★修正1：processCheck() が走る前に、現在の操作情報をすべて安全に退避する
+    const effectAction = lastAction;
+    const effectChanged = changed ? { ...changed } : null;
+    const effectChangesArr = changesArr ? [...changesArr] : null;
+    const effectWall = lastWall ? { ...lastWall } : null;
+
     // 1. 強度に基づいた拡散・減衰計算
     processCheck();
 
     // 2. 状態のクリアと交代
-    changed = null;
-    changes_arr = null;
-    current_player = current_player === 1 ? 2 : 1;
+    changed = null;      
+    changesArr = null;   
+    lastWall = null;     // ★修正2：壁の記憶もここでしっかりクリアする
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+    
+    // 盤面の再描画
     renderBoard();
+
+    // ★修正3：コメントアウトを解除し、一括管理している triggerEffects を呼び出す
+    // （個別に書いていた雑巾やスポンジのコードは削除し、こちらに集約させます）
+    triggerEffects(effectAction, effectChanged, effectChangesArr, effectWall);
+
+    if (!locked) {
+        // ターンカウントを上げる
+        turnCount += 0.5;
+    }
+
+    if (spongeCoolTime[currentPlayer] > 0) {
+        spongeCoolTime[currentPlayer]--;
+    }
+
     updateUI();
 
     if (result !== null) {
@@ -332,20 +381,37 @@ function endTurn() {
     }
 
     setTimeout(() => { setMode(DEFAULT_MODE); }, 100);
+}
 
-    if (!locked) {
-        // ターンカウントを上げる
-        turnCount += 0.5;
-        document.getElementById("turn-count").innerText = `${Math.floor(turnCount)} ターン目`;
+// ★丸ごと新規追加：エフェクトをトリガーする関数
+function triggerEffects(actionType, changedObj, changesArrObj, wallObj) {
+    // 1. 水源設置エフェクト
+    if (actionType === MODE_SOURCE && changedObj) {
+        const el = document.querySelector(`.cell[data-x="${changedObj.x}"][data-y="${changedObj.y}"]`);
+        if (el) el.classList.add('effect-source');
     }
-
-    // スポンジのクールタイムを減らす
-    if (sponge_cool_time[current_player] > 0) {
-        sponge_cool_time[current_player]--;
+    // 2. 雑巾エフェクト
+    else if (actionType === MODE_RAG && changedObj) {
+        const el = document.querySelector(`.cell[data-x="${changedObj.x}"][data-y="${changedObj.y}"]`);
+        if (el) el.classList.add('effect-rag');
+    }
+    // 3. スポンジエフェクト（複数マス）
+    else if (actionType === MODE_SPONGE && changesArrObj) {
+        changesArrObj.forEach(obj => {
+            const el = document.querySelector(`.cell[data-x="${obj.x}"][data-y="${obj.y}"]`);
+            if (el) el.classList.add('effect-sponge');
+        });
+    }
+    // 4. 仕切り操作（設置・撤去）エフェクト
+    else if ((actionType === 'place' || actionType === 'remove') && wallObj) {
+        const attr = wallObj.type === 'v' ? `data-wall-v="${wallObj.x}-${wallObj.y}"` : `data-wall-h="${wallObj.x}-${wallObj.y}"`;
+        const el = document.querySelector(`[${attr}]`);
+        if (el) {
+            el.classList.add(actionType === 'place' ? 'effect-wall-place' : 'effect-wall-remove');
+        }
     }
 }
 
-// 新アルゴリズム
 function processCheck() {
     // 1. 水源から届く「理論上の最大強度」を計算
     const potential = calculatePotentialStrengths();
@@ -396,7 +462,7 @@ function processCheck() {
                     newBoard[y][x].s = pot.s;
                 }
             } else if (!locked) {
-                // --- ここから修正・追加：生きている供給がない（pot.s === 0）場合の処理 ---
+                // --- 生きている供給がない（pot.s === 0）場合の処理 ---
                 if (current.player === null) {
                     // 【供給断絶中の水流からの拡散（1ターン遅れて発生）】
                     // 壁がない隣接マスを見渡して、最も強度の高い水流（s >= 2）を探す
@@ -431,7 +497,6 @@ function processCheck() {
                         newBoard[y][x] = { type: null, player: null, s: 0 };
                     }
                 }
-                // --- ここまで修正・追加 ---
             }
 
         }
@@ -440,20 +505,18 @@ function processCheck() {
     // 最後に予約された操作(水源設置/雑巾)を適用
     if (changed !== null) {
         newBoard[changed.y][changed.x] = { type: changed.type, player: changed.player, s: changed.s };
-        changed = null;
-    }
-    if (changes_arr !== null && changes_arr.length > 0) {
-        for (let index = 0; index < changes_arr.length; index++) {
-            const element = changes_arr[index];
-            newBoard[element.y][element.x] = { type: element.type, player: element.player, s: element.s };
-        }
-        changes_arr = null;
     }
 
+    if (changesArr !== null && changesArr.length > 0) {
+        for (let index = 0; index < changesArr.length; index++) {
+            const element = changesArr[index];
+            newBoard[element.y][element.x] = { type: element.type, player: element.player, s: element.s };
+        }
+        // changesArr = null; // ★ここを削除（またはコメントアウト）
+    }
 
     board = newBoard;
 }
-
 /**
  * 水源(Strength: H+W)から全マスへの到達強度を計算
  */
@@ -465,8 +528,8 @@ function calculatePotentialStrengths() {
     for (let y = 0; y < H; y++) {
         for (let x = 0; x < W; x++) {
             if (board[y][x].type === TYPE_SOURCE) {
-                potMap[y][x] = { player: board[y][x].player, s: max_strength };
-                queue.push({ x, y, p: board[y][x].player, s: max_strength });
+                potMap[y][x] = { player: board[y][x].player, s: maxStrength };
+                queue.push({ x, y, p: board[y][x].player, s: maxStrength });
             }
         }
     }
@@ -495,14 +558,16 @@ function calculatePotentialStrengths() {
 }
 
 function handleWallClick(type, x, y) {
-    if (current_mode !== MODE_WALL) return;
+    if (currentMode !== MODE_WALL) return;
 
     const isExist = type === 'v' ? wallsV[y][x] : wallsH[y][x];
     const adjPos = getAdjacentByWall(type, x, y);
     const [c1, c2] = adjPos.map(p => board[p.y][p.x]);
 
+    // ★追加：壁の位置情報を記録
+    lastWall = { type, x, y };
+
     if (isExist) {
-        // 撤去時：異なる色の水があるなら「強度の差」が2以上必要
         if (c1.player && c2.player && c1.player !== c2.player) {
             if (Math.abs(c1.s - c2.s) < 2) {
                 return log(`撤去不可: 強度の差が2以上必要 (${c1.s} vs ${c2.s})`);
@@ -511,7 +576,6 @@ function handleWallClick(type, x, y) {
         if (type === 'v') wallsV[y][x] = false; else wallsH[y][x] = false;
         lastAction = 'remove';
     } else {
-        // 設置：自由
         if (type === 'v') wallsV[y][x] = true; else wallsH[y][x] = true;
         lastAction = 'place';
     }

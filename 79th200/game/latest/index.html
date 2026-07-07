@@ -5,14 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <link rel="stylesheet" href="effects.css" type="text/css">
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
-    <title>The Flooded Floor v1.3</title>
+    <title>The Flooded Floor v1.31</title>
 </head>
 
 <body>
     <div id="setup-screen" class="font-round">
-        <h1>The Flooded Floor v1.3</h1>
+        <h1>The Flooded Floor v1.31</h1>
         <p style="font-family: 'Courier New', Courier, monospace;">presented by 79th 3200</p>
         <br>
         <div class="input-group">
@@ -22,14 +23,21 @@
         <div class="input-group">
             <label>プレイヤー1の名前: </label>
             <input type="text" id="p1-name" value="p1">
-            &nbsp;<label>色: </label><input type="color" id="p1-color" value="#c465c5">
+            &nbsp;<label>色: </label><input type="color" id="p1-color" value="rgb(211, 115, 212)">
         </div>
         <div class="input-group">
             <label>プレイヤー2の名前: </label>
             <input type="text" id="p2-name" value="p2">
-            &nbsp;<label>色: </label><input type="color" id="p2-color" value="#4dacc6">
+            &nbsp;<label>色: </label><input type="color" id="p2-color" value="rgb(95, 189, 214)">
         </div>
-        <br>
+        <p>
+            先攻プレイヤー :
+            <label><input type="radio" name="first" value="random" checked>ランダム</label>
+            <label><input type="radio" name="first" value="1" style="margin-left: 1em;"><span
+                    id="p1-name-show">p1</span></label>
+            <label><input type="radio" name="first" value="2" style="margin-left: 1em;"><span
+                    id="p2-name-show">p2</span></label>
+        </p>
         <button id="start-btn">ゲーム開始 / Start the Game</button>
     </div>
 
@@ -45,7 +53,7 @@
             <button id="mode-source" class="mode-btn">水源設置</button>
             <button id="mode-wall" class="mode-btn">仕切り操作</button>
             <button id="mode-rag" class="mode-btn">雑巾</button>
-            <button id="mode-sponge" class="mode-btn">スポンジ</button>
+            <button id="mode-sponge" class="mode-btn">スポンジ <span id="sponge-cooltime"></span> </button>
             <button id="mode-skip" class="mode-btn">スキップ</button>
         </div>
 
@@ -68,14 +76,15 @@
             <li>水を設置したり、仕切りを動かしたり、水を拭き取ったりして、自分の色の水を増やしていこう！</li>
             <li>水は勝手に流れていく！</li>
             <li>水源の数には上限があります</li>
-            <li>スポンジにはクールタイムがあります</li>
+            <li>スポンジにはクールタイム(16ターン)があります</li>
         </ul>
         <p>iPadなど画面の大きいデバイスで遊ぶことを推奨します</p>
     </div>
 
     <div id="survey">
-        <!-- <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSf_Z3YuEdHW4-bIxR_MPDe8KBGprxy-jpRXQlnOmZXo9PZN7Q/viewform?usp=header" frameborder="0" class="addition"></iframe> -->
-        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSf_Z3YuEdHW4-bIxR_MPDe8KBGprxy-jpRXQlnOmZXo9PZN7Q/viewform?embedded=true" width="100%" height="627" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>
+        <iframe
+            src="https://docs.google.com/forms/d/e/1FAIpQLSf_Z3YuEdHW4-bIxR_MPDe8KBGprxy-jpRXQlnOmZXo9PZN7Q/viewform?embedded=true"
+            width="100%" height="627" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>
     </div>
 
     <script src="script.js"></script>
