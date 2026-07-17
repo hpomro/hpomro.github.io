@@ -1,0 +1,94 @@
+:root {
+    --line-color: rgba(200, 200, 200, 0.15);
+}
+
+body {
+    margin: 0;
+    background: linear-gradient(to bottom right, rgb(128, 207, 228) 0%, rgb(230, 174, 231) 100%);
+    font-family: 'Century Gothic', Courier, monospace;
+    font-size: 2.5em;
+}
+
+.container {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.box {
+    width: 60vw;
+    padding: 1em;
+    background-color: white;
+    border-radius: 0.3em;
+    box-shadow: 0 0 1em 0.5em rgba(57, 51, 51, 0.1);
+    text-align: center;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.line-layer1 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    /* 45度の方向に、透明 -> 黒(1pxだけ) -> 透明 と切り替える */
+    background-image: linear-gradient(to top right, transparent 49.5%, var(--line-color) 49.5%, var(--line-color) 50.5%, transparent 50.5%);
+}
+
+.line-layer2 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    /* 45度の方向に、透明 -> 黒(1pxだけ) -> 透明 と切り替える */
+    background-image: linear-gradient(to top left, transparent 49.5%, var(--line-color) 49.5%, var(--line-color) 50.5%, transparent 50.5%);
+}
+
+.outer {
+    position: absolute;
+    /*top: 0;
+    left: 0;*/
+    width: 95%;
+    height: 95%;
+    pointer-events: none;
+    z-index: 1;
+    border: solid var(--line-color) 0.18em;
+}
+
+.content {
+    position: relative;
+    z-index: 10;
+}
+
+#countdown-d {
+    font-size: 200%;
+    font-weight: bold;
+    color: rgb(123, 0, 123);
+}
+
+#countdown-h {
+    font-size: 150%;
+    color: rgb(0, 110, 141);
+}
+
+#countdown-m {
+    font-size: 120%;
+}
+
+#countdown-s {
+    font-size: 110%;
+}
+
+.countdown {
+    margin: 0.2em;
+}
