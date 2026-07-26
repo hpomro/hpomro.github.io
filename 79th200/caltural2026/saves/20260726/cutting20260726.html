@@ -1,0 +1,2348 @@
+<!DOCTYPE html>
+<!-- saved from url=(0083)file:///C:/Users/sumgd/cultural2026/wood_distribution/visualizer/visualizer2.8.html -->
+<html lang="ja">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <title>Cutting Stock Visualizer v2.8</title>
+    <script src="./cutting20260726_files/html2canvas.min.js.ダウンロード"></script>
+    <link rel="stylesheet" href="./cutting20260726_files/style.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>外装木材一次カッティング2026/07/26版</h2>
+        <p>外装木材の9割です</p>
+
+        <div style="visibility: hidden; position: absolute;">
+            <div class="config-row">
+                <div class="input-group">
+                    <label>新規木材の長さ L</label>
+                    <input type="number" id="stockLength" value="4000">
+                </div>
+                <div class="input-group">
+                    <label>切り代 (Kerf)</label>
+                    <input type="number" id="kerf" value="4">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label>要望配列 A (長さ 本数 形式 ※任意)</label>
+                        <textarea id="arrayA" placeholder="例:
+400 2
+300 4"></textarea>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label>出力データ B (1行目:|B| / 2行目以降: 木材長さ 部材長さ1 部材長さ2...)</label>
+                        <textarea id="outputData" placeholder="例:
+2
+3000 400 300 300
+4000 1200 800 500"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-update" onclick="visualize()">表示を更新 &amp; スコア計算</button>
+                <button id="downloadBtn" class="btn-png" onclick="downloadPNG()"
+                    style="display: block;">PNGとして保存</button>
+            </div>
+
+        </div>
+
+        <div id="error-msg" class="error" style="display: none;"></div>
+
+        <div id="capture-area">
+            <div id="info-root" style="display: block;">
+                <div class="score-panel">
+                    <div class="score-card"><span class="score-label">全パーツ数 |A|</span><span id="val-a"
+                            class="score-val">305</span></div>
+                    <div class="score-card"><span class="score-label">使用木材総数 |B|</span><span id="val-b"
+                            class="score-val">164</span><span id="val-b-detail"
+                            style="font-size:11px; color:#7f8c8d;">(新品: 41 / 端材: 123)</span></div>
+                    <div class="score-card"><span class="score-label">標準偏差 σ</span><span id="val-sigma"
+                            class="score-val">1.32</span></div>
+                    <div class="score-card absolute-score"><span class="score-label">絶対スコア (|A|-コスト-σ)</span><span
+                            id="val-abs" class="score-val">262.56</span></div>
+                </div>
+            </div>
+            <div id="result-area">
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        1 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 92 mm"
+                            style="width: 30.6667%; background-color: rgb(187, 163, 27);"><span
+                                class="piece-label">92</span></div>
+                        <div class="kerf" style="width: 1.33333%;"></div>
+                        <div class="piece" title="長さ: 160 mm"
+                            style="width: 53.3333%; background-color: rgb(187, 137, 27);"><span
+                                class="piece-label">160</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        2 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        3 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        4 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 160 mm"
+                            style="width: 53.3333%; background-color: rgb(187, 137, 27);"><span
+                                class="piece-label">160</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        5 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        6 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        7 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        8 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        9 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        10 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        11 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        12 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        13 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        14 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        15 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 160 mm"
+                            style="width: 53.3333%; background-color: rgb(187, 137, 27);"><span
+                                class="piece-label">160</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        16 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        17 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        18 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 44.3333%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                        <div class="kerf" style="width: 1.33333%;"></div>
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 44.3333%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        19 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        20 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        21 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        22 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        23 (300 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 69.3333%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        24 (460 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 86.9565%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        25 (460 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 86.9565%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        26 (460 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 86.9565%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        27 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        28 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        29 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        30 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 470 mm"
+                            style="width: 95.9184%; background-color: rgb(27, 164, 187);"><span
+                                class="piece-label">470</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        31 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        32 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 460 mm"
+                            style="width: 93.8776%; background-color: rgb(63, 27, 187);"><span
+                                class="piece-label">460</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        33 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        34 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        35 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 460 mm"
+                            style="width: 93.8776%; background-color: rgb(63, 27, 187);"><span
+                                class="piece-label">460</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        36 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        37 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        38 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        39 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        40 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        41 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        42 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        43 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        44 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        45 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        46 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        47 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        48 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        49 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        50 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        51 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        52 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        53 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        54 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        55 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        56 (490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 81.6327%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        57 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 95.1923%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        58 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 95.1923%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        59 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 95.1923%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        60 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 95.1923%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        61 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 95.1923%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        62 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 95.1923%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        63 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 95.1923%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        64 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 92 mm"
+                            style="width: 17.6923%; background-color: rgb(187, 163, 27);"><span
+                                class="piece-label">92</span></div>
+                        <div class="kerf" style="width: 0.769231%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 76.9231%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        65 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 480 mm"
+                            style="width: 92.3077%; background-color: rgb(27, 187, 37);"><span
+                                class="piece-label">480</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        66 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 92 mm"
+                            style="width: 17.6923%; background-color: rgb(187, 163, 27);"><span
+                                class="piece-label">92</span></div>
+                        <div class="kerf" style="width: 0.769231%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 76.9231%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        67 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 76.9231%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        68 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 92 mm"
+                            style="width: 17.6923%; background-color: rgb(187, 163, 27);"><span
+                                class="piece-label">92</span></div>
+                        <div class="kerf" style="width: 0.769231%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 76.9231%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        69 (520 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 95.1923%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        70 (550 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 480 mm"
+                            style="width: 87.2727%; background-color: rgb(27, 187, 37);"><span
+                                class="piece-label">480</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        71 (550 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 24.1818%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                        <div class="kerf" style="width: 0.727273%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 72.7273%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        72 (550 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 24.1818%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                        <div class="kerf" style="width: 0.727273%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 72.7273%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        73 (550 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 24.1818%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                        <div class="kerf" style="width: 0.727273%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 72.7273%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        74 (550 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 24.1818%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                        <div class="kerf" style="width: 0.727273%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 72.7273%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        75 (580 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 85.3448%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        76 (580 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 22.931%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                        <div class="kerf" style="width: 0.689655%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 68.9655%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        77 (580 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 160 mm"
+                            style="width: 27.5862%; background-color: rgb(187, 137, 27);"><span
+                                class="piece-label">160</span></div>
+                        <div class="kerf" style="width: 0.689655%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 68.9655%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        78 (610 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 65.5738%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        79 (610 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 65.5738%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        80 (610 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 21.8033%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                        <div class="kerf" style="width: 0.655738%;"></div>
+                        <div class="piece" title="長さ: 460 mm"
+                            style="width: 75.4098%; background-color: rgb(63, 27, 187);"><span
+                                class="piece-label">460</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        81 (610 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 65.5738%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        82 (610 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 92 mm"
+                            style="width: 15.082%; background-color: rgb(187, 163, 27);"><span
+                                class="piece-label">92</span></div>
+                        <div class="kerf" style="width: 0.655738%;"></div>
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 81.1475%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        83 (640 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 32.5%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.625%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 62.5%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        84 (640 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 32.5%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.625%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 62.5%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        85 (640 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 32.5%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.625%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 62.5%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        86 (640 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 32.5%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.625%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 62.5%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        87 (640 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 32.5%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.625%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 62.5%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        88 (640 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 32.5%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.625%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 62.5%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        89 (640 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 32.5%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.625%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 62.5%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        90 (640 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 32.5%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.625%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 62.5%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        91 (640 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 32.5%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.625%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 62.5%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        92 (640 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 32.5%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.625%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 62.5%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        93 (670 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 59.7015%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        94 (670 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 59.7015%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        95 (730 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 705 mm"
+                            style="width: 96.5753%; background-color: rgb(72, 187, 27);"><span
+                                class="piece-label">705</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        96 (730 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 705 mm"
+                            style="width: 96.5753%; background-color: rgb(72, 187, 27);"><span
+                                class="piece-label">705</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        97 (730 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 705 mm"
+                            style="width: 96.5753%; background-color: rgb(72, 187, 27);"><span
+                                class="piece-label">705</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        98 (730 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 705 mm"
+                            style="width: 96.5753%; background-color: rgb(72, 187, 27);"><span
+                                class="piece-label">705</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        99 (730 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 705 mm"
+                            style="width: 96.5753%; background-color: rgb(72, 187, 27);"><span
+                                class="piece-label">705</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        100 (730 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 705 mm"
+                            style="width: 96.5753%; background-color: rgb(72, 187, 27);"><span
+                                class="piece-label">705</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        101 (790 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 780 mm"
+                            style="width: 98.7342%; background-color: rgb(187, 27, 91);"><span
+                                class="piece-label">780</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        102 (790 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 770 mm"
+                            style="width: 97.4684%; background-color: rgb(187, 136, 27);"><span
+                                class="piece-label">770</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        103 (850 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 96.3529%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        104 (850 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 96.3529%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        105 (850 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 96.3529%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        106 (850 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 96.3529%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        107 (850 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 96.3529%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        108 (880 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 855 mm"
+                            style="width: 97.1591%; background-color: rgb(27, 109, 187);"><span
+                                class="piece-label">855</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        109 (880 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 855 mm"
+                            style="width: 97.1591%; background-color: rgb(27, 109, 187);"><span
+                                class="piece-label">855</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        110 (880 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 93.0682%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        111 (880 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 93.0682%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        112 (880 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 93.0682%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        113 (1030 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 1000 mm"
+                            style="width: 97.0874%; background-color: rgb(187, 27, 60);"><span
+                                class="piece-label">1000</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        114 (1750 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 11.8857%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.228571%;"></div>
+                        <div class="piece" title="長さ: 1470 mm" style="width: 84%; background-color: rgb(27, 187, 178);">
+                            <span class="piece-label">1470</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        115 (1990 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 92 mm"
+                            style="width: 4.62312%; background-color: rgb(187, 163, 27);"><span
+                                class="piece-label">92</span></div>
+                        <div class="kerf" style="width: 0.201005%;"></div>
+                        <div class="piece" title="長さ: 1890 mm"
+                            style="width: 94.9749%; background-color: rgb(187, 27, 108);"><span
+                                class="piece-label">1890</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        116 (2410 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 8.63071%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.165975%;"></div>
+                        <div class="piece" title="長さ: 2113 mm"
+                            style="width: 87.6763%; background-color: rgb(187, 118, 27);"><span
+                                class="piece-label">2113</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        117 (2500 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 2440 mm"
+                            style="width: 97.6%; background-color: rgb(187, 27, 30);"><span
+                                class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        118 (2860 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 4.65035%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                        <div class="kerf" style="width: 0.13986%;"></div>
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 4.65035%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                        <div class="kerf" style="width: 0.13986%;"></div>
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 4.65035%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                        <div class="kerf" style="width: 0.13986%;"></div>
+                        <div class="piece" title="長さ: 2440 mm"
+                            style="width: 85.3147%; background-color: rgb(187, 27, 30);"><span
+                                class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        119 (2860 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 13.986%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.13986%;"></div>
+                        <div class="piece" title="長さ: 2440 mm"
+                            style="width: 85.3147%; background-color: rgb(187, 27, 30);"><span
+                                class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        120 (2860 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 13.986%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.13986%;"></div>
+                        <div class="piece" title="長さ: 2440 mm"
+                            style="width: 85.3147%; background-color: rgb(187, 27, 30);"><span
+                                class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        121 (3490 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 5.95989%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.114613%;"></div>
+                        <div class="piece" title="長さ: 1080 mm"
+                            style="width: 30.9456%; background-color: rgb(27, 165, 187);"><span
+                                class="piece-label">1080</span></div>
+                        <div class="kerf" style="width: 0.114613%;"></div>
+                        <div class="piece" title="長さ: 2113 mm"
+                            style="width: 60.5444%; background-color: rgb(187, 118, 27);"><span
+                                class="piece-label">2113</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        122 (3670 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 160 mm"
+                            style="width: 4.35967%; background-color: rgb(187, 137, 27);"><span
+                                class="piece-label">160</span></div>
+                        <div class="kerf" style="width: 0.108992%;"></div>
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 5.66757%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.108992%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 10.8992%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.108992%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 10.8992%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.108992%;"></div>
+                        <div class="piece" title="長さ: 2440 mm"
+                            style="width: 66.485%; background-color: rgb(187, 27, 30);"><span
+                                class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        123 (3970 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm"
+                            style="width: 5.23929%; background-color: rgb(27, 187, 138);"><span
+                                class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.100756%;"></div>
+                        <div class="piece" title="長さ: 400 mm"
+                            style="width: 10.0756%; background-color: rgb(142, 27, 187);"><span
+                                class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.100756%;"></div>
+                        <div class="piece" title="長さ: 780 mm"
+                            style="width: 19.6474%; background-color: rgb(187, 27, 91);"><span
+                                class="piece-label">780</span></div>
+                        <div class="kerf" style="width: 0.100756%;"></div>
+                        <div class="piece" title="長さ: 2440 mm"
+                            style="width: 61.461%; background-color: rgb(187, 27, 30);"><span
+                                class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        124 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 12.375%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        125 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        126 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 160 mm" style="width: 4%; background-color: rgb(187, 137, 27);">
+                            <span class="piece-label">160</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 770 mm"
+                            style="width: 19.25%; background-color: rgb(187, 136, 27);"><span
+                                class="piece-label">770</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2430 mm"
+                            style="width: 60.75%; background-color: rgb(177, 187, 27);"><span
+                                class="piece-label">2430</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        127 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 1470 mm"
+                            style="width: 36.75%; background-color: rgb(27, 187, 178);"><span
+                                class="piece-label">1470</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        128 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 770 mm"
+                            style="width: 19.25%; background-color: rgb(187, 136, 27);"><span
+                                class="piece-label">770</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 20.475%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2113 mm"
+                            style="width: 52.825%; background-color: rgb(187, 118, 27);"><span
+                                class="piece-label">2113</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        129 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 133 mm"
+                            style="width: 3.325%; background-color: rgb(157, 27, 187);"><span
+                                class="piece-label">133</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 1000 mm" style="width: 25%; background-color: rgb(187, 27, 60);">
+                            <span class="piece-label">1000</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        130 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 160 mm" style="width: 4%; background-color: rgb(187, 137, 27);">
+                            <span class="piece-label">160</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 160 mm" style="width: 4%; background-color: rgb(187, 137, 27);">
+                            <span class="piece-label">160</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        131 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 460 mm" style="width: 11.5%; background-color: rgb(63, 27, 187);">
+                            <span class="piece-label">460</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        132 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 12.375%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 20.475%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        133 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 705 mm"
+                            style="width: 17.625%; background-color: rgb(72, 187, 27);"><span
+                                class="piece-label">705</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        134 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 12.375%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        135 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 12.375%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 765 mm"
+                            style="width: 19.125%; background-color: rgb(151, 187, 27);"><span
+                                class="piece-label">765</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2113 mm"
+                            style="width: 52.825%; background-color: rgb(187, 118, 27);"><span
+                                class="piece-label">2113</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        136 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 705 mm"
+                            style="width: 17.625%; background-color: rgb(72, 187, 27);"><span
+                                class="piece-label">705</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        137 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 12.375%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 780 mm" style="width: 19.5%; background-color: rgb(187, 27, 91);">
+                            <span class="piece-label">780</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        138 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 1795 mm"
+                            style="width: 44.875%; background-color: rgb(27, 63, 187);"><span
+                                class="piece-label">1795</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2113 mm"
+                            style="width: 52.825%; background-color: rgb(187, 118, 27);"><span
+                                class="piece-label">2113</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        139 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        140 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        141 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2113 mm"
+                            style="width: 52.825%; background-color: rgb(187, 118, 27);"><span
+                                class="piece-label">2113</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        142 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 855 mm"
+                            style="width: 21.375%; background-color: rgb(27, 109, 187);"><span
+                                class="piece-label">855</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        143 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 855 mm"
+                            style="width: 21.375%; background-color: rgb(27, 109, 187);"><span
+                                class="piece-label">855</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2430 mm"
+                            style="width: 60.75%; background-color: rgb(177, 187, 27);"><span
+                                class="piece-label">2430</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        144 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 460 mm" style="width: 11.5%; background-color: rgb(63, 27, 187);">
+                            <span class="piece-label">460</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        145 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 160 mm" style="width: 4%; background-color: rgb(187, 137, 27);">
+                            <span class="piece-label">160</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 470 mm"
+                            style="width: 11.75%; background-color: rgb(27, 164, 187);"><span
+                                class="piece-label">470</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 12.375%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        146 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 470 mm"
+                            style="width: 11.75%; background-color: rgb(27, 164, 187);"><span
+                                class="piece-label">470</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 780 mm" style="width: 19.5%; background-color: rgb(187, 27, 91);">
+                            <span class="piece-label">780</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        147 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 460 mm" style="width: 11.5%; background-color: rgb(63, 27, 187);">
+                            <span class="piece-label">460</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 20.475%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        148 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 765 mm"
+                            style="width: 19.125%; background-color: rgb(151, 187, 27);"><span
+                                class="piece-label">765</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        149 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 780 mm" style="width: 19.5%; background-color: rgb(187, 27, 91);">
+                            <span class="piece-label">780</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        150 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 460 mm" style="width: 11.5%; background-color: rgb(63, 27, 187);">
+                            <span class="piece-label">460</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 470 mm"
+                            style="width: 11.75%; background-color: rgb(27, 164, 187);"><span
+                                class="piece-label">470</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        151 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 460 mm" style="width: 11.5%; background-color: rgb(63, 27, 187);">
+                            <span class="piece-label">460</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 1080 mm" style="width: 27%; background-color: rgb(27, 165, 187);">
+                            <span class="piece-label">1080</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        152 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 208 mm" style="width: 5.2%; background-color: rgb(27, 187, 138);">
+                            <span class="piece-label">208</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 12.375%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        153 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 2430 mm"
+                            style="width: 60.75%; background-color: rgb(177, 187, 27);"><span
+                                class="piece-label">2430</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        154 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        155 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        156 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 1795 mm"
+                            style="width: 44.875%; background-color: rgb(27, 63, 187);"><span
+                                class="piece-label">1795</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2113 mm"
+                            style="width: 52.825%; background-color: rgb(187, 118, 27);"><span
+                                class="piece-label">2113</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        157 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 819 mm"
+                            style="width: 20.475%; background-color: rgb(184, 27, 187);"><span
+                                class="piece-label">819</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        158 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 2113 mm"
+                            style="width: 52.825%; background-color: rgb(187, 118, 27);"><span
+                                class="piece-label">2113</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        159 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        160 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        161 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 1890 mm"
+                            style="width: 47.25%; background-color: rgb(187, 27, 108);"><span
+                                class="piece-label">1890</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        162 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        163 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 400 mm" style="width: 10%; background-color: rgb(142, 27, 187);">
+                            <span class="piece-label">400</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 495 mm"
+                            style="width: 12.375%; background-color: rgb(187, 97, 27);"><span
+                                class="piece-label">495</span></div>
+                        <div class="kerf" style="width: 0.1%;"></div>
+                        <div class="piece" title="長さ: 2440 mm" style="width: 61%; background-color: rgb(187, 27, 30);">
+                            <span class="piece-label">2440</span></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 10px;">
+                    <div
+                        style="width: 105px; font-size: 12px; font-weight: bold; color: rgb(44, 62, 80); white-space: nowrap; background: rgb(233, 236, 239); padding: 6px 10px; border-radius: 4px; border: 1px solid rgb(206, 212, 218); text-align: center;">
+                        164 (4000 mm)</div>
+                    <div class="stock-bar" style="flex: 1 1 0%;">
+                        <div class="piece" title="長さ: 2430 mm"
+                            style="width: 60.75%; background-color: rgb(177, 187, 27);"><span
+                                class="piece-label">2430</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function visualize() {
+            const L = parseFloat(document.getElementById('stockLength').value);
+            const K = parseFloat(document.getElementById('kerf').value);
+            const rawA = document.getElementById('arrayA').value.trim();
+            const rawOutput = document.getElementById('outputData').value.trim();
+            const resultArea = document.getElementById('result-area');
+            const infoRoot = document.getElementById('info-root');
+            const errorArea = document.getElementById('error-msg');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            resultArea.innerHTML = "";
+            errorArea.style.display = "none";
+            if (!rawOutput) return;
+
+            // 1. Aのパース (「長さ 本数」形式: スペース/改行/カンマ区切り)
+            const A = [];
+            if (rawA) {
+                const linesA = rawA.split('\n');
+                linesA.forEach(line => {
+                    const tokens = line.trim().split(/[\s,]+/).filter(v => v !== "");
+                    if (tokens.length >= 2) {
+                        // 偶数個の要素を 「長さ 本数」 のペアとして取得
+                        for (let i = 0; i < tokens.length; i += 2) {
+                            const len = parseFloat(tokens[i]);
+                            const cnt = (i + 1 < tokens.length) ? parseInt(tokens[i + 1]) : 1;
+                            if (!isNaN(len) && !isNaN(cnt)) {
+                                for (let k = 0; k < cnt; k++) A.push(len);
+                            }
+                        }
+                    } else if (tokens.length === 1) {
+                        const len = parseFloat(tokens[0]);
+                        if (!isNaN(len)) A.push(len);
+                    }
+                });
+            }
+
+            // 2. Bのパース
+            const linesOut = rawOutput.split('\n').map(s => s.trim()).filter(s => s !== "");
+            let stockResults = linesOut;
+            if (linesOut.length > 0 && linesOut[0].split(/\s+/).length === 1) {
+                stockResults = linesOut.slice(1);
+            }
+
+            const parsedRows = [];
+
+            stockResults.forEach((line) => {
+                const values = line.trim().split(/\s+/).filter(v => v !== "").map(Number);
+                if (values.length === 0) return;
+
+                const currentStockLength = values[0];
+                const pieces = values.slice(1);
+
+                parsedRows.push({
+                    stockLength: currentStockLength,
+                    pieces: pieces
+                });
+            });
+
+            // 【色のロジック改善】黄金角 (約137.508°) を用いて長さごとに全く異なる色相(Hue)を散らす関数
+            function getColorByLength(len) {
+                const goldenAngle = 137.50776;
+                const hue = (Math.round(len) * goldenAngle) % 360;
+                return `hsl(${hue}, 75%, 42%)`;
+            }
+
+            // 使用木材の短い順（昇順）にソート
+            parsedRows.sort((a, b) => a.stockLength - b.stockLength);
+
+            const pieceCounts = [];
+            let totalPieces = 0;
+            let woodCount = 0;
+            let lCount = 0;
+            let stockCount = 0;
+
+            parsedRows.forEach((rowObj) => {
+                const currentStockLength = rowObj.stockLength;
+                const pieces = rowObj.pieces;
+
+                if (currentStockLength === L) {
+                    lCount++;
+                } else {
+                    stockCount++;
+                }
+
+                pieceCounts.push(pieces.length);
+
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.marginBottom = '12px';
+                row.style.gap = '10px';
+
+                // 左バッジ
+                const label = document.createElement('div');
+                label.style.width = '105px';
+                label.style.fontSize = '12px';
+                label.style.fontWeight = 'bold';
+                label.style.color = '#2c3e50';
+                label.style.whiteSpace = 'nowrap';
+                label.style.background = '#e9ecef';
+                label.style.padding = '6px 10px';
+                label.style.borderRadius = '4px';
+                label.style.border = '1px solid #ced4da';
+                label.style.textAlign = 'center';
+                label.innerText = `${++woodCount} (${currentStockLength} mm)`;
+                row.appendChild(label);
+
+                const bar = document.createElement('div');
+                bar.className = 'stock-bar';
+                bar.style.flex = '1';
+
+                pieces.forEach((len, idx) => {
+                    totalPieces++;
+
+                    const piece = document.createElement('div');
+                    piece.className = 'piece';
+                    piece.style.width = (len / currentStockLength * 100) + '%';
+
+                    // 黄金角アルゴリズムにより散らした色を適用
+                    piece.style.backgroundColor = getColorByLength(len);
+                    piece.title = `長さ: ${len} mm`;
+                    piece.innerHTML = `<span class="piece-label">${len}</span>`;
+                    bar.appendChild(piece);
+
+                    // 切り代
+                    if (idx < pieces.length - 1 && K > 0) {
+                        const kerfDiv = document.createElement('div');
+                        kerfDiv.className = 'kerf';
+                        kerfDiv.style.width = (K / currentStockLength * 100) + '%';
+                        bar.appendChild(kerfDiv);
+                    }
+                });
+                row.appendChild(bar);
+                resultArea.appendChild(row);
+            });
+
+            // 統計・スコア計算
+            const countA = A.length > 0 ? A.length : totalPieces;
+            const n = pieceCounts.length;
+            const mean = n > 0 ? totalPieces / n : 0;
+            const variance = n > 0 ? pieceCounts.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / n : 0;
+            const sigma = Math.sqrt(variance);
+
+            const cost = (lCount * 1.0) + (stockCount * 0.001);
+            const absScore = countA - cost - sigma;
+
+            document.getElementById('val-a').innerText = countA;
+            document.getElementById('val-b').innerText = n;
+            document.getElementById('val-b-detail').innerText = `(新品: ${lCount} / 端材: ${stockCount})`;
+            document.getElementById('val-sigma').innerText = sigma.toFixed(2);
+            document.getElementById('val-abs').innerText = absScore.toFixed(2);
+            infoRoot.style.display = "block";
+            downloadBtn.style.display = "block";
+        }
+
+        async function downloadPNG() {
+            const target = document.getElementById('capture-area');
+            const canvas = await html2canvas(target, { backgroundColor: "#ffffff", scale: 2 });
+            const link = document.createElement('a');
+            link.download = `cutting-v2.8-${Date.now()}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        }
+    </script>
+
+
+</body>
+
+</html>
